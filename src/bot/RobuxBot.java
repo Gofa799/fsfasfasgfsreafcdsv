@@ -50,7 +50,7 @@ public class RobuxBot extends TelegramLongPollingBot {
             switch (text) {
                 case "/start":
                     db.addUserIfNotExists(chatId);
-                    MessageUtils.sendText(this, chatId, "Добро пожаловать!", KeyboardFactory.mainKeyboard(), null, lastBotMessages);
+                    MessageUtils.sendText(this, chatId, "Добро пожаловать! RobuxLoot уникальный сервис для заработка робуксов! Для начала нажми кнопку Задания. ", KeyboardFactory.mainKeyboard(), null, lastBotMessages);
                     break;
 
                 case "/login":
@@ -60,6 +60,25 @@ public class RobuxBot extends TelegramLongPollingBot {
                     } else {
                         MessageUtils.sendText(this, chatId, "⛔ Доступ запрещён.", KeyboardFactory.mainKeyboard(), null, lastBotMessages);
                     }
+                    break;
+                case "❓ Помощь":
+                    MessageUtils.sendText(this, chatId, "❓ Помощь — Как вывести валюту\n" +
+                            "Чтобы подать заявку на вывод, выполните следующие шаги:\n" +
+                            "\n" +
+                            "Нажмите \"\uD83D\uDCBC Личный кабинет\", затем выберите \"\uD83E\uDD11 Вывод\".\n" +
+                            "\n" +
+                            "\uD83D\uDCACВ одном сообщении укажите:" +
+                            "\n" +
+                            "Ваш ник в Roblox." +
+                            "\n" +
+                            "Затем желаемую сумму вывода.\n" +
+                            "\n" +
+                            "После отправки заявки:" +
+                            "\n" +
+                            "Вы должны будете создать карту на указанном аккаунте с геймпассом и ценой которую выдал бот.\n" +
+                            "\n" +
+                            "\uD83D\uDCAC Важно:\n" +
+                            "Выплата производится в течение 7 дней после запроса на вывод.", KeyboardFactory.mainKeyboard(), null, lastBotMessages);
                     break;
 
                 case "💼 Личный кабинет":
@@ -71,7 +90,7 @@ public class RobuxBot extends TelegramLongPollingBot {
 
                 case "📋 Задания":
                     List<Task> tasks = db.getAllTasks();
-                    MessageUtils.sendText(this, chatId, "Выберите задание:", KeyboardFactory.taskKeyboard(tasks, 1, 6), null, lastBotMessages);
+                    MessageUtils.sendText(this, chatId, "Доступные задания:", KeyboardFactory.taskKeyboard(tasks, 1, 6), null, lastBotMessages);
                     break;
 
                 case "🛠 Админ-панель":
@@ -125,7 +144,7 @@ public class RobuxBot extends TelegramLongPollingBot {
             EditMessageText edit = new EditMessageText();
             edit.setChatId(String.valueOf(chatId));
             edit.setMessageId(messageId);
-            edit.setText("Выберите задание:");
+            edit.setText("Доступные задания:");
             edit.setReplyMarkup(KeyboardFactory.taskKeyboard(tasks, page, 6));
             execute(edit);
         } catch (Exception e) {
