@@ -28,6 +28,8 @@ public class RobuxBot extends TelegramLongPollingBot {
             e.printStackTrace();
         }
     }
+    private final Dotenv dotenv = Dotenv.configure().load();
+
 
     @Override
     public String getBotUsername() {
