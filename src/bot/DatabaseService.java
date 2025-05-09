@@ -40,7 +40,7 @@ public class DatabaseService {
         }
     }
     public List<Task> getAllTasks() {
-        // Пример: заглушка, замените на запрос к БД
+
         return List.of(
                 new Task("Подпишись на канал 1", "Описание 1"),
                 new Task("Подпишись на канал 2", "Описание 2"),

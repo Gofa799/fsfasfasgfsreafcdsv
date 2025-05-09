@@ -11,14 +11,13 @@ import java.util.Map;
 public class MessageUtils {
 
     public static void sendText(TelegramLongPollingBot bot, long chatId, String text,
-                                ReplyKeyboard replyKeyboard, // обычная клавиатура
-                                ReplyKeyboard inlineKeyboard, // инлайн клавиатура
+                                ReplyKeyboard replyKeyboard,
+                                ReplyKeyboard inlineKeyboard,
                                 Map<Long, Integer> lastBotMessages) {
         SendMessage message = new SendMessage();
         message.setChatId(String.valueOf(chatId));
         message.setText(text);
 
-        // Устанавливаем только одну клавиатуру
         if (inlineKeyboard != null) {
             message.setReplyMarkup(inlineKeyboard);
         } else if (replyKeyboard != null) {
@@ -46,7 +45,7 @@ public class MessageUtils {
             DeleteMessage delete = new DeleteMessage(String.valueOf(chatId), messageId);
             bot.execute(delete);
         } catch (Exception e) {
-            // Игнорируем ошибку удаления
+
         }
     }
 }

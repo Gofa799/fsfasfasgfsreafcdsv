@@ -49,14 +49,13 @@ public class KeyboardFactory {
     }
     public static InlineKeyboardMarkup taskKeyboard(List<Task> tasks, int page, int pageSize) {
         int totalPages = (int) Math.ceil((double) tasks.size() / pageSize);
-        page = Math.max(1, Math.min(page, totalPages)); // защитим от выхода за пределы
+        page = Math.max(1, Math.min(page, totalPages));
 
         int start = (page - 1) * pageSize;
         int end = Math.min(start + pageSize, tasks.size());
 
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
 
-        // Кнопки заданий
         for (int i = start; i < end; i++) {
             Task task = tasks.get(i);
             InlineKeyboardButton button = new InlineKeyboardButton();
@@ -65,7 +64,6 @@ public class KeyboardFactory {
             rows.add(List.of(button));
         }
 
-        // Стрелки
         InlineKeyboardButton left = new InlineKeyboardButton("⬅️");
         left.setCallbackData("tasks_prev_" + page);
 
@@ -103,7 +101,6 @@ public class KeyboardFactory {
             rows.add(row);
         }
 
-        // Кнопки навигации (вниз)
         List<InlineKeyboardButton> navigationRow = new ArrayList<>();
         if (page > 1) {
             InlineKeyboardButton prevBtn = new InlineKeyboardButton("⬅️ Назад");
