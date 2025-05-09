@@ -7,6 +7,7 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+import io.github.cdimascio.dotenv.Dotenv;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,12 +31,12 @@ public class RobuxBot extends TelegramLongPollingBot {
 
     @Override
     public String getBotUsername() {
-        return "robuxloots_bot";
+        return dotenv.get("BOT_USERNAME");
     }
 
     @Override
     public String getBotToken() {
-        return "7605702613:AAGlAsVzVjkTaU0F1xqlEvd4cdkaF4G4fUU";
+        return dotenv.get("BOT_TOKEN");
     }
 
     @Override

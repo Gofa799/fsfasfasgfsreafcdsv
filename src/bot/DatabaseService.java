@@ -1,21 +1,23 @@
 package bot;
 
+import io.github.cdimascio.dotenv.Dotenv;
+
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class DatabaseService {
-    private final String url = "jdbc:postgresql://localhost:5432/robuxbot";
-    private final String user = "postgres";
-    private final String password = "yourpassword";
+    private final String url;
+    private final String user;
+    private final String password;
 
     public DatabaseService() {
+        Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load(); // Загружает переменные из .env
+        this.url = dotenv.get("DB_URL");
+        this.user = dotenv.get("DB_USER");
+        this.password = dotenv.get("DB_PASSWORD");
         init();
     }
-
-
 
     public void init() {
         try (Connection conn = DriverManager.getConnection(url, user, password);
@@ -39,8 +41,8 @@ public class DatabaseService {
             e.printStackTrace();
         }
     }
-    public List<Task> getAllTasks() {
 
+    public List<Task> getAllTasks() {
         return List.of(
                 new Task("Подпишись на канал 1", "Описание 1"),
                 new Task("Подпишись на канал 2", "Описание 2"),
@@ -82,9 +84,9 @@ public class DatabaseService {
         }
         return 0;
     }
+
     public List<WithdrawalRequest> getAllWithdrawalRequests() {
         List<WithdrawalRequest> requests = new ArrayList<>();
-
         String sql = "SELECT user_id, amount, date FROM withdrawals ORDER BY date DESC";
 
         try (Connection conn = DriverManager.getConnection(url, user, password);
