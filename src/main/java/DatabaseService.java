@@ -10,7 +10,7 @@ public class DatabaseService {
     private final String password;
 
     public DatabaseService() {
-        Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load(); // Загружает переменные из .env
+        Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
         this.url = dotenv.get("DB_URL");
         this.user = dotenv.get("DB_USER");
         this.password = dotenv.get("DB_PASSWORD");
