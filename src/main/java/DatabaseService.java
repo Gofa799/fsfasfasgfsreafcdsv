@@ -99,7 +99,7 @@ public class DatabaseService {
 
     private int getInt(String column, long id) {
         try (Connection conn = DriverManager.getConnection(url, user, password);
-             PreparedStatement stmt = conn.prepareStatement("SELECT " + column + " FROM users WHERE id = ?")) {
+             PreparedStatement stmt = conn.prepareStatement("SELECT " + column + " FROM users WHERE telegram_id = ?")) {
             stmt.setLong(1, id);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) return rs.getInt(1);
