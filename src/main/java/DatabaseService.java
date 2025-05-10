@@ -10,10 +10,9 @@ public class DatabaseService {
     private final String password;
 
     public DatabaseService() {
-        Dotenv dotenv = Dotenv.configure().ignoreIfMissing().directory("/app").load();
-        this.url = dotenv.get("DB_URL");
-        this.user = dotenv.get("DB_USER");
-        this.password = dotenv.get("DB_PASSWORD");
+        this.url = System.getenv("DB_URL");
+        this.user = System.getenv("DB_USER");
+        this.password = System.getenv("DB_PASSWORD");
         init();
     }
 
