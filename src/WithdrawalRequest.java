@@ -1,5 +1,3 @@
-package bot;
-
 public class WithdrawalRequest {
     private long userId;
     private int amount;

@@ -1,5 +1,3 @@
-package bot;
-
 public class Task {
     private final String title;
     private final String description;

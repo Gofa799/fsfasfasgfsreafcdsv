@@ -1,5 +1,3 @@
-package bot;
-
 import io.github.cdimascio.dotenv.Dotenv;
 
 import java.sql.*;
