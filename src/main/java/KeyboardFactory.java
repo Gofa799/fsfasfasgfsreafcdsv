@@ -81,6 +81,18 @@ public class KeyboardFactory {
         markup.setKeyboard(rows);
         return markup;
     }
+    public static InlineKeyboardMarkup profileKeyboard() {
+        InlineKeyboardButton withdrawButton = new InlineKeyboardButton();
+        withdrawButton.setText("💸 Вывести");
+        withdrawButton.setCallbackData("withdraw");
+
+        List<InlineKeyboardButton> row = new ArrayList<>();
+        row.add(withdrawButton);
+
+        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+        markup.setKeyboard(List.of(row));
+        return markup;
+    }
     public static InlineKeyboardMarkup withdrawalKeyboard(List<WithdrawalRequest> requests, int page, int itemsPerPage) {
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
         int totalPages = (int) Math.ceil((double) requests.size() / itemsPerPage);

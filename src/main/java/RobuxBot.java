@@ -78,15 +78,17 @@ public class RobuxBot extends TelegramLongPollingBot {
                 case "💼 Личный кабинет":
                     int robux = db.getRobux(telegramId);
                     int completed = db.getCompletedTasks(telegramId);
-                    String profile = "Робуксы: " + robux + "\nВыполнено заданий: " + completed;
-                    MessageUtils.sendText(this, chatId, profile, KeyboardFactory.mainKeyboard(), null, lastBotMessages);
-                    break;
+                    String profile = "👤 Профиль: @" + (username != null ? username : "Без ника") +
+                            "\n🆔 ID: " + telegramId +
+                            "\n💰 Робуксы: " + robux +
+                            "\n✅ Выполнено заданий: " + completed;
 
+                    MessageUtils.sendText(this, chatId, profile, KeyboardFactory.profileKeyboard(), null, lastBotMessages);
+                    break;
                 case "📋 Задания":
                     List<Task> tasks = db.getAllTasks();
-                    MessageUtils.sendText(this, chatId, "Доступные задания:", KeyboardFactory.taskKeyboard(tasks, 1, 6), null, lastBotMessages);
+                    MessageUtils.sendText(this, chatId, "Доступные задания(скоро будет больше):", KeyboardFactory.taskKeyboard(tasks, 1, 6), null, lastBotMessages);
                     break;
-
                 case "🛠 Админ-панель":
                 case "📊 Отчёт":
                 case "📥 Заявки на вывод":

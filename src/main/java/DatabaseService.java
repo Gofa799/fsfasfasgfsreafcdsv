@@ -77,16 +77,39 @@ public class DatabaseService {
         return false;
     }
 
-    public List<Task> getAllTasks() {
-        return List.of(
-                new Task("Подпишись на канал 1", "Описание 1"),
-                new Task("Подпишись на канал 2", "Описание 2"),
-                new Task("Установи приложение", "Описание 3"),
-                new Task("Сделай репост", "Описание 4"),
-                new Task("Поставь лайк", "Описание 5"),
-                new Task("Посети сайт", "Описание 6"),
-                new Task("Скачай игру", "Описание 7")
-        );
+    public List<Task> getAvailableTasks(long userId) {
+        List<Task> tasks = new ArrayList<>();
+
+        String sql = """
+        SELECT * FROM tasks t
+        WHERE t.current_completions < t.max_completions
+        AND NOT EXISTS (
+            SELECT 1 FROM user_tasks ut WHERE ut.user_id = ? AND ut.task_id = t.id
+        )
+    """;
+
+        try (Connection conn = DriverManager.getConnection(url, user, password);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setLong(1, userId);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                Task task = new Task(
+                        rs.getInt("id"),
+                        rs.getString("title"),
+                        rs.getString("description"),
+                        rs.getInt("reward"),
+                        rs.getString("type"),
+                        rs.getString("target")
+                );
+                tasks.add(task);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return tasks;
     }
 
     public int getRobux(long id) {
@@ -118,6 +141,32 @@ public class DatabaseService {
             e.printStackTrace();
         }
         return 0;
+    }
+    public List<Task> getAllTasks() {
+        List<Task> tasks = new ArrayList<>();
+        String sql = "SELECT * FROM tasks ORDER BY id";
+
+        try (Connection conn = DriverManager.getConnection(url, user, password);
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                Task task = new Task(
+                        rs.getInt("id"),
+                        rs.getString("title"),
+                        rs.getString("description"),
+                        rs.getInt("reward"),
+                        rs.getString("type"),
+                        rs.getString("target")
+                );
+                tasks.add(task);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return tasks;
     }
 
     public List<WithdrawalRequest> getAllWithdrawalRequests() {
