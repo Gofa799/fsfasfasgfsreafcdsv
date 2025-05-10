@@ -19,7 +19,7 @@ public class DatabaseService {
     public void addUserIfNotExists(long telegramId, String username) {
         try (Connection conn = DriverManager.getConnection(url, user, password);
              PreparedStatement stmt = conn.prepareStatement(
-                     "INSERT INTO users (telegram_id, username, robux) " +
+                     "INSERT INTO users (telegram_id, username, balance) " +
                              "VALUES (?, ?, 20) " +
                              "ON CONFLICT (telegram_id) DO NOTHING")) {
             stmt.setLong(1, telegramId);
