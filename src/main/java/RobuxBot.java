@@ -1,4 +1,5 @@
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
@@ -30,13 +31,19 @@ public class RobuxBot extends TelegramLongPollingBot {
         if (update.hasMessage() && update.getMessage().hasText()) {
             long chatId = update.getMessage().getChatId();
             int msgId = update.getMessage().getMessageId();
+            Message message = update.getMessage();
+            long telegramId = message.getFrom().getId();
+            String username = message.getFrom().getUserName();
+            if (username == null) {
+                username = "unknown";
+            }
             String text = update.getMessage().getText();
 
             MessageUtils.deleteMessage(this, chatId, msgId);
 
             switch (text) {
                 case "/start":
-                    db.addUserIfNotExists(chatId);
+                    db.addUserIfNotExists(telegramId, username);
                     MessageUtils.sendText(this, chatId, "Добро пожаловать! RobuxLoot уникальный сервис для заработка робуксов! Для начала нажми кнопку Задания. ", KeyboardFactory.mainKeyboard(), null, lastBotMessages);
                     break;
 

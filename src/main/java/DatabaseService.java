@@ -13,30 +13,68 @@ public class DatabaseService {
         this.url = System.getenv("DB_URL");
         this.user = System.getenv("DB_USER");
         this.password = System.getenv("DB_PASSWORD");
-        init();
+
     }
 
-    public void init() {
-        try (Connection conn = DriverManager.getConnection(url, user, password);
-             Statement stmt = conn.createStatement()) {
-            stmt.execute("CREATE TABLE IF NOT EXISTS users (" +
-                    "id BIGINT PRIMARY KEY, " +
-                    "robux INT DEFAULT 0, " +
-                    "completed INT DEFAULT 0)");
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void addUserIfNotExists(long id) {
+    public void addUserIfNotExists(long telegramId, String username) {
         try (Connection conn = DriverManager.getConnection(url, user, password);
              PreparedStatement stmt = conn.prepareStatement(
-                     "INSERT INTO users (id) VALUES (?) ON CONFLICT DO NOTHING")) {
-            stmt.setLong(1, id);
+                     "INSERT INTO users (telegram_id, username, robux) " +
+                             "VALUES (?, ?, 20) " +
+                             "ON CONFLICT (telegram_id) DO NOTHING")) {
+            stmt.setLong(1, telegramId);
+            stmt.setString(2, username);
             stmt.execute();
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+    public boolean submitTask(long telegramId, long taskId) {
+        try (Connection conn = DriverManager.getConnection(url, user, password)) {
+            conn.setAutoCommit(false);
+
+            try (PreparedStatement checkStmt = conn.prepareStatement(
+                    "SELECT 1 FROM task_submissions WHERE telegram_id = ? AND task_id = ?")) {
+                checkStmt.setLong(1, telegramId);
+                checkStmt.setLong(2, taskId);
+                ResultSet rs = checkStmt.executeQuery();
+                if (rs.next()) return false; // Уже выполнял
+            }
+            double reward = 0;
+            try (PreparedStatement rewardStmt = conn.prepareStatement(
+                    "SELECT reward FROM tasks WHERE id = ?")) {
+                rewardStmt.setLong(1, taskId);
+                ResultSet rs = rewardStmt.executeQuery();
+                if (rs.next()) reward = rs.getDouble(1);
+                else return false;
+            }
+
+            try (PreparedStatement updateBalance = conn.prepareStatement(
+                    "UPDATE users SET balance = balance + ? WHERE telegram_id = ?")) {
+                updateBalance.setDouble(1, reward);
+                updateBalance.setLong(2, telegramId);
+                updateBalance.executeUpdate();
+            }
+
+            try (PreparedStatement insertSubmission = conn.prepareStatement(
+                    "INSERT INTO task_submissions (telegram_id, task_id, status) VALUES (?, ?, 'approved')")) {
+                insertSubmission.setLong(1, telegramId);
+                insertSubmission.setLong(2, taskId);
+                insertSubmission.executeUpdate();
+            }
+
+            try (PreparedStatement updateCompletions = conn.prepareStatement(
+                    "UPDATE tasks SET current_completions = current_completions + 1 WHERE id = ?")) {
+                updateCompletions.setLong(1, taskId);
+                updateCompletions.executeUpdate();
+            }
+
+            conn.commit();
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     public List<Task> getAllTasks() {
