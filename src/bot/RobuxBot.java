@@ -18,16 +18,6 @@ public class RobuxBot extends TelegramLongPollingBot {
     private final Set<Long> authorizedAdmins = new HashSet<>();
     private final Map<Long, Integer> lastBotMessages = new ConcurrentHashMap<>();
 
-    public static void main(String[] args) {
-        try {
-            TelegramBotsApi botsApi = new TelegramBotsApi(DefaultBotSession.class);
-            botsApi.registerBot(new RobuxBot());
-            System.out.println("🤖 RobuxBot запущен успешно.");
-        } catch (TelegramApiException e) {
-            System.err.println("Ошибка запуска бота:");
-            e.printStackTrace();
-        }
-    }
     private final Dotenv dotenv = Dotenv.configure().load();
 
 
