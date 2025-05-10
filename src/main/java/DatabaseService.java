@@ -90,7 +90,7 @@ public class DatabaseService {
     }
 
     public int getRobux(long id) {
-        return getInt("robux", id);
+        return getInt("balance", id); // или "balance", если у тебя поле так называется
     }
 
     public int getCompletedTasks(long id) {
