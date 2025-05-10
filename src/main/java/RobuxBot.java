@@ -13,7 +13,7 @@ public class RobuxBot extends TelegramLongPollingBot {
     private final Set<Long> authorizedAdmins = new HashSet<>();
     private final Map<Long, Integer> lastBotMessages = new ConcurrentHashMap<>();
 
-    private final Dotenv dotenv = Dotenv.configure().load();
+    private final Dotenv dotenv = Dotenv.configure().directory("/app").load();
 
 
     @Override
