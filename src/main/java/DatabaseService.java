@@ -59,7 +59,7 @@ public class DatabaseService {
             conn.setAutoCommit(false);
 
             try (PreparedStatement checkStmt = conn.prepareStatement(
-                    "SELECT 1 FROM task_submissions WHERE telegram_id = ? AND task_id = ?")) {
+                    "SELECT 1 FROM user_tasks WHERE telegram_id = ? AND task_id = ?")) {
                 checkStmt.setLong(1, telegramId);
                 checkStmt.setLong(2, taskId);
                 ResultSet rs = checkStmt.executeQuery();
@@ -137,7 +137,7 @@ public class DatabaseService {
     }
     private boolean isFirstTask(long userId) throws SQLException {
         try (PreparedStatement stmt = DriverManager.getConnection(url, user, password)
-                .prepareStatement("SELECT COUNT(*) FROM task_submissions WHERE telegram_id = ?")) {
+                .prepareStatement("SELECT COUNT(*) FROM user_tasks WHERE telegram_id = ?")) {
             stmt.setLong(1, userId);
             ResultSet rs = stmt.executeQuery();
             return rs.next() && rs.getInt(1) == 0;
