@@ -109,7 +109,7 @@ public class DatabaseService {
         SELECT * FROM tasks t
         WHERE t.current_completions < t.max_completions
         AND NOT EXISTS (
-            SELECT 1 FROM user_tasks ut WHERE ut.telegram_id = ? AND ut.task_id = t.id
+            SELECT 1 FROM user_tasks ut WHERE ut.telegram_id = ? AND ut.task_id = t.task_id
         )
     """;
 
