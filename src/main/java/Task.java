@@ -5,7 +5,7 @@ public class Task {
     private final int reward;
     private final String type;
 
-    public Task(int id, String title, String description, int reward, String type, String target) {
+    public Task(int id, String title, String description, int reward, String type) {
         this.id = id;
         this.title = title;
         this.description = description;

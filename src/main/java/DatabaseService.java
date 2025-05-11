@@ -18,10 +18,9 @@ public class DatabaseService {
 
     public void addUserIfNotExists(long telegramId, String username, Long referrerId) {
         try (Connection conn = DriverManager.getConnection(url, user, password)) {
-            // Включаем ручной контроль транзакции
+
             conn.setAutoCommit(false);
 
-            // Добавляем пользователя, если его ещё нет
             try (PreparedStatement insertStmt = conn.prepareStatement(
                     "INSERT INTO users (telegram_id, username, balance, referrer_id) " +
                             "VALUES (?, ?, 20, ?) " +
@@ -46,10 +45,10 @@ public class DatabaseService {
 
                 conn.commit();
             } catch (SQLException e) {
-                conn.rollback(); // Откат в случае ошибки
+                conn.rollback();
                 e.printStackTrace();
             } finally {
-                conn.setAutoCommit(true); // Возвращаем авто-коммит
+                conn.setAutoCommit(true);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -193,8 +192,7 @@ public class DatabaseService {
                         rs.getString("title"),
                         rs.getString("description"),
                         rs.getInt("reward"),
-                        rs.getString("type"),
-                        rs.getString("target")
+                        rs.getString("type")
                 );
                 tasks.add(task);
             }
