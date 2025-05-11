@@ -17,19 +17,41 @@ public class DatabaseService {
     }
 
     public void addUserIfNotExists(long telegramId, String username, Long referrerId) {
-        try (Connection conn = DriverManager.getConnection(url, user, password);
-             PreparedStatement stmt = conn.prepareStatement(
-                     "INSERT INTO users (telegram_id, username, balance, referrer_id) " +
-                             "VALUES (?, ?, 20, ?) " +
-                             "ON CONFLICT (telegram_id) DO NOTHING")) {
-            stmt.setLong(1, telegramId);
-            stmt.setString(2, username);
-            if (referrerId != null) {
-                stmt.setLong(3, referrerId);
-            } else {
-                stmt.setNull(3, Types.BIGINT);
+        try (Connection conn = DriverManager.getConnection(url, user, password)) {
+            // Включаем ручной контроль транзакции
+            conn.setAutoCommit(false);
+
+            // Добавляем пользователя, если его ещё нет
+            try (PreparedStatement insertStmt = conn.prepareStatement(
+                    "INSERT INTO users (telegram_id, username, balance, referrer_id) " +
+                            "VALUES (?, ?, 20, ?) " +
+                            "ON CONFLICT (telegram_id) DO NOTHING")) {
+                insertStmt.setLong(1, telegramId);
+                insertStmt.setString(2, username);
+                if (referrerId != null) {
+                    insertStmt.setLong(3, referrerId);
+                } else {
+                    insertStmt.setNull(3, Types.BIGINT);
+                }
+
+                int affectedRows = insertStmt.executeUpdate();
+
+                // Только если пользователь был добавлен впервые
+                if (affectedRows > 0 && referrerId != null) {
+                    try (PreparedStatement rewardStmt = conn.prepareStatement(
+                            "UPDATE users SET balance = balance + 5, referrers = referrers + 1 WHERE telegram_id = ?")) {
+                        rewardStmt.setLong(1, referrerId);
+                        rewardStmt.executeUpdate();
+                    }
+                }
+
+                conn.commit();
+            } catch (SQLException e) {
+                conn.rollback(); // Откат в случае ошибки
+                e.printStackTrace();
+            } finally {
+                conn.setAutoCommit(true); // Возвращаем авто-коммит
             }
-            stmt.execute();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -141,8 +163,12 @@ public class DatabaseService {
     }
 
     public int getRobux(long id) {
-        return getInt("balance", id); // или "balance", если у тебя поле так называется
+        return getInt("balance", id);
     }
+    public int getRef(long id) {
+        return getInt("referrers", id);
+    }
+
 
     public int getCompletedTasks(long id) {
         return getInt("completed", id);

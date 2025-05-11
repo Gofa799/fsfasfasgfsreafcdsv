@@ -90,10 +90,12 @@ public class RobuxBot extends TelegramLongPollingBot {
                 case "💼 Личный кабинет":
                     int robux = db.getRobux(telegramId);
                     int completed = db.getCompletedTasks(telegramId);
+                    int referrers = db.getRef(telegramId);
                     String profile = "👤 Профиль: @" + (username != null ? username : "Без ника") +
                             "\n🆔 ID: " + telegramId +
                             "\n💰 Робуксы: " + robux +
                             "\n✅ Выполнено заданий: " + completed +
+                            "\n👤 Рефералы: " + referrers +
                             "\n🔗 Ваша реферальная ссылка: https://t.me/" + getBotUsername() + "?start=" + telegramId;
 
                     MessageUtils.sendText(this, chatId, profile, KeyboardFactory.profileKeyboard(), null, lastBotMessages);
