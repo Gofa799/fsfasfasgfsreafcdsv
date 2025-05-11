@@ -146,7 +146,13 @@ public class RobuxBot extends TelegramLongPollingBot {
                         "\n💰 Сумма: " + req.getAmount() +
                         "\n📅 Дата: " + req.getDate();
                 MessageUtils.sendText(this, chatId, info, KeyboardFactory.adminKeyboard(), null, lastBotMessages);
-            }
+            } else if (data.equals("back_to_menu")) {
+            MessageUtils.deleteMessage(this, chatId, messageId); // удаляем сообщение с профилем
+            MessageUtils.sendText(this, chatId,
+                    "Вы вернулись в главное меню.",
+                    KeyboardFactory.mainKeyboard(), null, lastBotMessages);
+        }
+
         }
     }
 
