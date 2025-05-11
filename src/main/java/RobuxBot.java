@@ -40,23 +40,25 @@ public class RobuxBot extends TelegramLongPollingBot {
             String text = update.getMessage().getText();
 
             MessageUtils.deleteMessage(this, chatId, msgId);
+            if (text.startsWith("/start")) {
+                String[] parts = text.split(" ");
+                Long referrerId = null;
+
+                if (parts.length == 2) {
+                    try {
+                        referrerId = Long.parseLong(parts[1]);
+                    } catch (NumberFormatException ignored) {}
+                }
+
+                db.addUserIfNotExists(telegramId, username, referrerId);
+
+                MessageUtils.sendText(this, chatId,
+                        "Добро пожаловать! RobuxLoot — уникальный сервис для заработка робуксов! Для начала нажми кнопку Задания.",
+                        KeyboardFactory.mainKeyboard(), null, lastBotMessages);
+                return; // чтобы не проваливаться дальше в switch
+            }
 
             switch (text) {
-                case "/start":
-                    String[] parts = text.split(" ");
-                    Long referrerId = null;
-
-                    if (parts.length == 2) {
-                        try {
-                            referrerId = Long.parseLong(parts[1]);
-                        } catch (NumberFormatException ignored) {}
-                    }
-
-                    db.addUserIfNotExists(telegramId, username, referrerId);
-
-                    MessageUtils.sendText(this, chatId, "Добро пожаловать! RobuxLoot уникальный сервис для заработка робуксов! Для начала нажми кнопку Задания. ", KeyboardFactory.mainKeyboard(), null, lastBotMessages);
-                    break;
-
                 case "/login":
                     if (chatId == ADMIN_ID) {
                         authorizedAdmins.add(chatId);
