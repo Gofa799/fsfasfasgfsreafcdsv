@@ -46,13 +46,28 @@ public class KeyboardFactory {
         return markup;
     }
     public static InlineKeyboardMarkup taskKeyboard(List<Task> tasks, int page, int pageSize) {
+        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
+
+        if (tasks == null || tasks.isEmpty()) {
+            InlineKeyboardButton refresh = new InlineKeyboardButton("🔄 Обновить список");
+            refresh.setCallbackData("refresh_tasks");
+
+            InlineKeyboardButton back = new InlineKeyboardButton("🔙 Назад");
+            back.setCallbackData("back_to_menu");
+
+            rows.add(List.of(refresh));
+            rows.add(List.of(back));
+
+            InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+            markup.setKeyboard(rows);
+            return markup;
+        }
+
         int totalPages = (int) Math.ceil((double) tasks.size() / pageSize);
         page = Math.max(1, Math.min(page, totalPages));
 
         int start = (page - 1) * pageSize;
         int end = Math.min(start + pageSize, tasks.size());
-
-        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
 
         for (int i = start; i < end; i++) {
             Task task = tasks.get(i);
@@ -77,6 +92,10 @@ public class KeyboardFactory {
         if (page < totalPages) navRow.add(right);
         rows.add(navRow);
 
+        InlineKeyboardButton back = new InlineKeyboardButton("🔙 Назад");
+        back.setCallbackData("back_to_menu");
+        rows.add(List.of(back));
+
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         markup.setKeyboard(rows);
         return markup;
@@ -86,11 +105,15 @@ public class KeyboardFactory {
         withdrawButton.setText("💸 Вывести");
         withdrawButton.setCallbackData("withdraw");
 
-        List<InlineKeyboardButton> row = new ArrayList<>();
-        row.add(withdrawButton);
+        InlineKeyboardButton backButton = new InlineKeyboardButton();
+        backButton.setText("🔙 Назад");
+        backButton.setCallbackData("back_to_menu");
 
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
-        markup.setKeyboard(List.of(row));
+        markup.setKeyboard(List.of(
+                List.of(withdrawButton),
+                List.of(backButton)
+        ));
         return markup;
     }
     public static InlineKeyboardMarkup withdrawalKeyboard(List<WithdrawalRequest> requests, int page, int itemsPerPage) {
