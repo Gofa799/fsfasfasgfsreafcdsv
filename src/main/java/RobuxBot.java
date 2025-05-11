@@ -3,7 +3,7 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
-import io.github.cdimascio.dotenv.Dotenv;
+
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -43,7 +43,17 @@ public class RobuxBot extends TelegramLongPollingBot {
 
             switch (text) {
                 case "/start":
-                    db.addUserIfNotExists(telegramId, username);
+                    String[] parts = text.split(" ");
+                    Long referrerId = null;
+
+                    if (parts.length == 2) {
+                        try {
+                            referrerId = Long.parseLong(parts[1]);
+                        } catch (NumberFormatException ignored) {}
+                    }
+
+                    db.addUserIfNotExists(telegramId, username, referrerId);
+
                     MessageUtils.sendText(this, chatId, "Добро пожаловать! RobuxLoot уникальный сервис для заработка робуксов! Для начала нажми кнопку Задания. ", KeyboardFactory.mainKeyboard(), null, lastBotMessages);
                     break;
 
@@ -81,12 +91,13 @@ public class RobuxBot extends TelegramLongPollingBot {
                     String profile = "👤 Профиль: @" + (username != null ? username : "Без ника") +
                             "\n🆔 ID: " + telegramId +
                             "\n💰 Робуксы: " + robux +
-                            "\n✅ Выполнено заданий: " + completed;
+                            "\n✅ Выполнено заданий: " + completed +
+                            "\n🔗 Ваша реферальная ссылка: https://t.me/" + getBotUsername() + "?start=" + telegramId;
 
                     MessageUtils.sendText(this, chatId, profile, KeyboardFactory.profileKeyboard(), null, lastBotMessages);
                     break;
                 case "📋 Задания":
-                    List<Task> tasks = db.getAllTasks();
+                    List<Task> tasks = db.getAvailableTasks(telegramId);
                     MessageUtils.sendText(this, chatId, "Доступные задания(скоро будет больше):", KeyboardFactory.taskKeyboard(tasks, 1, 6), null, lastBotMessages);
                     break;
                 case "🛠 Админ-панель":

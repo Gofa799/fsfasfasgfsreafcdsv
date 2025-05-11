@@ -1,4 +1,4 @@
-import io.github.cdimascio.dotenv.Dotenv;
+
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -16,14 +16,19 @@ public class DatabaseService {
 
     }
 
-    public void addUserIfNotExists(long telegramId, String username) {
+    public void addUserIfNotExists(long telegramId, String username, Long referrerId) {
         try (Connection conn = DriverManager.getConnection(url, user, password);
              PreparedStatement stmt = conn.prepareStatement(
-                     "INSERT INTO users (telegram_id, username, balance) " +
-                             "VALUES (?, ?, 20) " +
+                     "INSERT INTO users (telegram_id, username, balance, referrer_id) " +
+                             "VALUES (?, ?, 20, ?) " +
                              "ON CONFLICT (telegram_id) DO NOTHING")) {
             stmt.setLong(1, telegramId);
             stmt.setString(2, username);
+            if (referrerId != null) {
+                stmt.setLong(3, referrerId);
+            } else {
+                stmt.setNull(3, Types.BIGINT);
+            }
             stmt.execute();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -68,6 +73,21 @@ public class DatabaseService {
                 updateCompletions.setLong(1, taskId);
                 updateCompletions.executeUpdate();
             }
+            if (isFirstTask(telegramId)) {
+                try (PreparedStatement refStmt = conn.prepareStatement("SELECT referrer_id FROM users WHERE telegram_id = ?")) {
+                    refStmt.setLong(1, telegramId);
+                    ResultSet rs = refStmt.executeQuery();
+                    if (rs.next()) {
+                        long referrer = rs.getLong("referrer_id");
+                        if (referrer != 0) {
+                            try (PreparedStatement bonusStmt = conn.prepareStatement("UPDATE users SET balance = balance + 5 WHERE telegram_id = ?")) {
+                                bonusStmt.setLong(1, referrer);
+                                bonusStmt.executeUpdate();
+                            }
+                        }
+                    }
+                }
+            }
 
             conn.commit();
             return true;
@@ -110,6 +130,14 @@ public class DatabaseService {
         }
 
         return tasks;
+    }
+    private boolean isFirstTask(long userId) throws SQLException {
+        try (PreparedStatement stmt = DriverManager.getConnection(url, user, password)
+                .prepareStatement("SELECT COUNT(*) FROM task_submissions WHERE telegram_id = ?")) {
+            stmt.setLong(1, userId);
+            ResultSet rs = stmt.executeQuery();
+            return rs.next() && rs.getInt(1) == 0;
+        }
     }
 
     public int getRobux(long id) {
