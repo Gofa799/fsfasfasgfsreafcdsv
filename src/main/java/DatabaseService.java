@@ -121,7 +121,7 @@ public class DatabaseService {
 
             while (rs.next()) {
                 Task task = new Task(
-                        rs.getInt("id"),
+                        rs.getInt("task_id"),
                         rs.getString("title"),
                         rs.getString("description"),
                         rs.getInt("reward"),
