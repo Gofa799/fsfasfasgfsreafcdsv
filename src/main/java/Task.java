@@ -4,7 +4,6 @@ public class Task {
     private final String description;
     private final int reward;
     private final String type;
-    private final String target;
 
     public Task(int id, String title, String description, int reward, String type, String target) {
         this.id = id;
@@ -12,7 +11,6 @@ public class Task {
         this.description = description;
         this.reward = reward;
         this.type = type;
-        this.target = target;
     }
 
     public int getId() {
@@ -35,7 +33,4 @@ public class Task {
         return type;
     }
 
-    public String getTarget() {
-        return target;
-    }
 }

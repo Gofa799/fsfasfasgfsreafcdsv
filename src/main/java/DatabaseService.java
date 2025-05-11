@@ -36,7 +36,6 @@ public class DatabaseService {
 
                 int affectedRows = insertStmt.executeUpdate();
 
-                // Только если пользователь был добавлен впервые
                 if (affectedRows > 0 && referrerId != null) {
                     try (PreparedStatement rewardStmt = conn.prepareStatement(
                             "UPDATE users SET balance = balance + 5, referrers = referrers + 1 WHERE telegram_id = ?")) {
@@ -95,21 +94,6 @@ public class DatabaseService {
                 updateCompletions.setLong(1, taskId);
                 updateCompletions.executeUpdate();
             }
-            if (isFirstTask(telegramId)) {
-                try (PreparedStatement refStmt = conn.prepareStatement("SELECT referrer_id FROM users WHERE telegram_id = ?")) {
-                    refStmt.setLong(1, telegramId);
-                    ResultSet rs = refStmt.executeQuery();
-                    if (rs.next()) {
-                        long referrer = rs.getLong("referrer_id");
-                        if (referrer != 0) {
-                            try (PreparedStatement bonusStmt = conn.prepareStatement("UPDATE users SET balance = balance + 5 WHERE telegram_id = ?")) {
-                                bonusStmt.setLong(1, referrer);
-                                bonusStmt.executeUpdate();
-                            }
-                        }
-                    }
-                }
-            }
 
             conn.commit();
             return true;
@@ -126,7 +110,7 @@ public class DatabaseService {
         SELECT * FROM tasks t
         WHERE t.current_completions < t.max_completions
         AND NOT EXISTS (
-            SELECT 1 FROM user_tasks ut WHERE ut.user_id = ? AND ut.task_id = t.id
+            SELECT 1 FROM user_tasks ut WHERE ut.telegram_id = ? AND ut.task_id = t.id
         )
     """;
 
@@ -142,8 +126,7 @@ public class DatabaseService {
                         rs.getString("title"),
                         rs.getString("description"),
                         rs.getInt("reward"),
-                        rs.getString("type"),
-                        rs.getString("target")
+                        rs.getString("type")
                 );
                 tasks.add(task);
             }
