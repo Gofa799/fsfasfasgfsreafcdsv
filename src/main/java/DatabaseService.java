@@ -67,7 +67,7 @@ public class DatabaseService {
             }
             double reward = 0;
             try (PreparedStatement rewardStmt = conn.prepareStatement(
-                    "SELECT reward FROM tasks WHERE id = ?")) {
+                    "SELECT reward FROM tasks WHERE task_id = ?")) {
                 rewardStmt.setLong(1, taskId);
                 ResultSet rs = rewardStmt.executeQuery();
                 if (rs.next()) reward = rs.getDouble(1);
