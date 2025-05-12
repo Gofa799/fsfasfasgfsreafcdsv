@@ -125,7 +125,8 @@ public class DatabaseService {
                         rs.getString("title"),
                         rs.getString("description"),
                         rs.getInt("reward"),
-                        rs.getString("type")
+                        rs.getString("type"),
+                        rs.getString("channel_username")
                 );
                 tasks.add(task);
             }
@@ -177,31 +178,6 @@ public class DatabaseService {
             e.printStackTrace();
         }
         return 0;
-    }
-    public List<Task> getAllTasks() {
-        List<Task> tasks = new ArrayList<>();
-        String sql = "SELECT * FROM tasks ORDER BY id";
-
-        try (Connection conn = DriverManager.getConnection(url, user, password);
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-
-            while (rs.next()) {
-                Task task = new Task(
-                        rs.getInt("id"),
-                        rs.getString("title"),
-                        rs.getString("description"),
-                        rs.getInt("reward"),
-                        rs.getString("type")
-                );
-                tasks.add(task);
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return tasks;
     }
 
     public List<WithdrawalRequest> getAllWithdrawalRequests() {

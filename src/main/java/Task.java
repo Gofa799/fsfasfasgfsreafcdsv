@@ -6,12 +6,13 @@ public class Task {
     private final String type;
     private String channelUsername;
 
-    public Task(int id, String title, String description, int reward, String type) {
+    public Task(int id, String title, String description, int reward, String type, String channel_username) {
         this.id = id;
         this.title = title;
         this.description = description;
         this.reward = reward;
         this.type = type;
+        this.channelUsername = channel_username;
     }
     public String getChannelUsername() {
         return channelUsername;
