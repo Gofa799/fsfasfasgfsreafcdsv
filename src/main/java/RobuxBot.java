@@ -122,8 +122,7 @@ public class RobuxBot extends TelegramLongPollingBot {
             String data = callback.getData();
             long chatId = callback.getMessage().getChatId();
             int messageId = callback.getMessage().getMessageId();
-            Message message = update.getMessage();
-            long telegramId = message.getFrom().getId();
+            long telegramId = callback.getFrom().getId();
 
             if (data.startsWith("tasks_prev_")) {
                 int currentPage = Integer.parseInt(data.substring("tasks_prev_".length()));
