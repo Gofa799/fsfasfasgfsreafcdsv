@@ -122,16 +122,18 @@ public class RobuxBot extends TelegramLongPollingBot {
             String data = callback.getData();
             long chatId = callback.getMessage().getChatId();
             int messageId = callback.getMessage().getMessageId();
+            Message message = update.getMessage();
+            long telegramId = message.getFrom().getId();
 
             if (data.startsWith("tasks_prev_")) {
                 int currentPage = Integer.parseInt(data.substring("tasks_prev_".length()));
-                editTaskPage(chatId, messageId, db.getAllTasks(), currentPage - 1);
+                editTaskPage(chatId, messageId, db.getAvailableTasks(telegramId), currentPage - 1);
             } else if (data.startsWith("tasks_next_")) {
                 int currentPage = Integer.parseInt(data.substring("tasks_next_".length()));
-                editTaskPage(chatId, messageId, db.getAllTasks(), currentPage + 1);
+                editTaskPage(chatId, messageId, db.getAvailableTasks(telegramId), currentPage + 1);
             } else if (data.startsWith("task_")) {
                 int taskIndex = Integer.parseInt(data.substring("task_".length()));
-                Task task = db.getAllTasks().get(taskIndex);
+                Task task = db.getAvailableTasks(telegramId).get(taskIndex);
                 MessageUtils.sendText(this, chatId, "📝 " + task.getTitle() + "\n\n" + task.getDescription(), KeyboardFactory.mainKeyboard(), null, lastBotMessages);
             } else if (data.startsWith("withdrawals_prev_")) {
                 int currentPage = Integer.parseInt(data.substring("withdrawals_prev_".length()));
