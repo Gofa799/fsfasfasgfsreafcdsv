@@ -89,7 +89,7 @@ public class DatabaseService {
             }
 
             try (PreparedStatement updateCompletions = conn.prepareStatement(
-                    "UPDATE tasks SET current_completions = current_completions + 1 WHERE id = ?")) {
+                    "UPDATE tasks SET current_completions = current_completions + 1 WHERE task_id = ?")) {
                 updateCompletions.setLong(1, taskId);
                 updateCompletions.executeUpdate();
             }
