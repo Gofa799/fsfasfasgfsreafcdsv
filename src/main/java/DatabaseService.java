@@ -80,6 +80,11 @@ public class DatabaseService {
                 updateBalance.setLong(2, telegramId);
                 updateBalance.executeUpdate();
             }
+            try (PreparedStatement updateCompleted = conn.prepareStatement(
+                    "UPDATE users SET completed = completed + 1 WHERE telegram_id = ?")) {
+                updateCompleted.setLong(1, telegramId);
+                updateCompleted.executeUpdate();
+            }
 
             try (PreparedStatement insertSubmission = conn.prepareStatement(
                     "INSERT INTO user_tasks (telegram_id, task_id) VALUES (?, ?)")) {
