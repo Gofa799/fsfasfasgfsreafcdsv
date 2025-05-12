@@ -134,6 +134,49 @@ public class RobuxBot extends TelegramLongPollingBot {
                 int taskIndex = Integer.parseInt(data.substring("task_".length()));
                 Task task = db.getAvailableTasks(telegramId).get(taskIndex);
                 MessageUtils.sendText(this, chatId, "📝 " + task.getTitle() + "\n\n" + task.getDescription(), KeyboardFactory.mainKeyboard(), null, lastBotMessages);
+            }
+            else if (data.startsWith("check_task_")) {
+            long taskId = Long.parseLong(data.substring("check_task_".length()));
+
+            // Поиск задания по id в доступных пользователю
+            Task task = null;
+            for (Task t : db.getAvailableTasks(telegramId)) {
+                if (t.getId() == taskId) {
+                    task = t;
+                    break;
+                }
+            }
+
+            if (task == null) {
+                MessageUtils.sendText(this, chatId, "❗ Задание не найдено.", KeyboardFactory.mainKeyboard(), null, lastBotMessages);
+                return;
+            }
+
+            boolean success = false;
+
+            // Пример проверки
+            if (task.getType().equals("subscribe")) {
+                success = SubscriptionChecker.isSubscribed(this, telegramId, task.getChannelUsername());
+            }
+            // другие проверки...
+
+            if (success) {
+                boolean submitted = db.submitTask(telegramId, taskId);
+                if (submitted) {
+                    MessageUtils.sendText(this, chatId,
+                            "✅ Задание выполнено! Вам начислено " + task.getReward() + " робуксов.",
+                            KeyboardFactory.mainKeyboard(), null, lastBotMessages);
+                } else {
+                    MessageUtils.sendText(this, chatId,
+                            "⚠️ Вы уже выполняли это задание.",
+                            KeyboardFactory.mainKeyboard(), null, lastBotMessages);
+                }
+            } else {
+                MessageUtils.sendText(this, chatId,
+                        "❌ Вы ещё не выполнили задание. Пожалуйста, выполните его и попробуйте снова.",
+                        KeyboardFactory.mainKeyboard(), null, lastBotMessages);
+            }
+
             } else if (data.startsWith("withdrawals_prev_")) {
                 int currentPage = Integer.parseInt(data.substring("withdrawals_prev_".length()));
                 editWithdrawalPage(chatId, messageId, db.getAllWithdrawalRequests(), currentPage - 1);

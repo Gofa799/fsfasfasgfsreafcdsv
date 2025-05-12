@@ -82,7 +82,7 @@ public class DatabaseService {
             }
 
             try (PreparedStatement insertSubmission = conn.prepareStatement(
-                    "INSERT INTO task_submissions (telegram_id, task_id, status) VALUES (?, ?, 'approved')")) {
+                    "INSERT INTO user_tasks (telegram_id, task_id) VALUES (?, ?)")) {
                 insertSubmission.setLong(1, telegramId);
                 insertSubmission.setLong(2, taskId);
                 insertSubmission.executeUpdate();
