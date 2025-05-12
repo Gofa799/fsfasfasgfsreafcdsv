@@ -100,6 +100,23 @@ public class KeyboardFactory {
         markup.setKeyboard(rows);
         return markup;
     }
+    public static InlineKeyboardMarkup taskDetailsKeyboard(Task task) {
+        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
+
+        if ("subscribe".equalsIgnoreCase(task.getType())) {
+            InlineKeyboardButton checkButton = new InlineKeyboardButton("✅ Проверить задание");
+            checkButton.setCallbackData("check_task_" + task.getId());
+            rows.add(List.of(checkButton));
+        }
+
+        InlineKeyboardButton backButton = new InlineKeyboardButton("🔙 Назад");
+        backButton.setCallbackData("back_to_tasks");
+        rows.add(List.of(backButton));
+
+        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+        markup.setKeyboard(rows);
+        return markup;
+    }
     public static InlineKeyboardMarkup profileKeyboard() {
         InlineKeyboardButton withdrawButton = new InlineKeyboardButton();
         withdrawButton.setText("💸 Вывести");

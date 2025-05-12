@@ -3,6 +3,7 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 
 
 import java.util.*;
@@ -133,12 +134,14 @@ public class RobuxBot extends TelegramLongPollingBot {
             } else if (data.startsWith("task_")) {
                 int taskIndex = Integer.parseInt(data.substring("task_".length()));
                 Task task = db.getAvailableTasks(telegramId).get(taskIndex);
-                MessageUtils.sendText(this, chatId, "📝 " + task.getTitle() + "\n\n" + task.getDescription(), KeyboardFactory.mainKeyboard(), null, lastBotMessages);
+                InlineKeyboardMarkup keyboard = KeyboardFactory.taskDetailsKeyboard(task);
+                String text = "📝 " + task.getTitle() + "\n\n" + task.getDescription();
+                MessageUtils.sendText(this, chatId, text, keyboard, null, lastBotMessages);
             }
             else if (data.startsWith("check_task_")) {
             long taskId = Long.parseLong(data.substring("check_task_".length()));
 
-            // Поиск задания по id в доступных пользователю
+
             Task task = null;
             for (Task t : db.getAvailableTasks(telegramId)) {
                 if (t.getId() == taskId) {
@@ -154,11 +157,11 @@ public class RobuxBot extends TelegramLongPollingBot {
 
             boolean success = false;
 
-            // Пример проверки
+
             if (task.getType().equals("subscribe")) {
                 success = SubscriptionChecker.isSubscribed(this, telegramId, task.getChannelUsername());
             }
-            // другие проверки...
+
 
             if (success) {
                 boolean submitted = db.submitTask(telegramId, taskId);
