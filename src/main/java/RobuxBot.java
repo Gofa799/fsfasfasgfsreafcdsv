@@ -91,12 +91,13 @@ public class RobuxBot extends TelegramLongPollingBot {
                     withdrawStates.put(telegramId, state);
 
                     MessageUtils.sendText(this, chatId, "✏️ Теперь введите ваш username в Roblox.", KeyboardFactory.mainKeyboard(), null, lastBotMessages);
-                    awaitingAmount.remove(telegramId);  // закончили с ожиданием суммы
-                    awaitingNickname.add(telegramId);   // начинаем ожидать ник
+                    awaitingAmount.remove(telegramId);
+                    awaitingNickname.add(telegramId);
 
                 } catch (NumberFormatException e) {
-                    MessageUtils.sendText(this, chatId, "❌ Введите корректное число.", KeyboardFactory.mainKeyboard(), null, lastBotMessages);
-                }
+                awaitingAmount.remove(telegramId);
+                MessageUtils.sendText(this, chatId, "❌ Введите корректное число.", KeyboardFactory.mainKeyboard(), null, lastBotMessages);
+            }
 
                 return;
             }
@@ -113,7 +114,7 @@ public class RobuxBot extends TelegramLongPollingBot {
                 state.setStage(2);
                 withdrawStates.put(telegramId, state);
 
-                db.addWithdrawalRequest(telegramId, state.getAmount(), nickname); // Предполагаем, что у вас есть такой метод
+                db.addWithdrawalRequest(telegramId, state.getAmount(), nickname);
 
                 MessageUtils.sendText(this, chatId, "✅ Заявка на вывод отправлена!", KeyboardFactory.mainKeyboard(), null, lastBotMessages);
 
@@ -311,8 +312,8 @@ public class RobuxBot extends TelegramLongPollingBot {
             case "📥 Заявки на вывод":
                 List<WithdrawalRequest> requests = db.getAllWithdrawalRequests();
                 MessageUtils.sendText(this, chatId, "📥 Заявки на вывод:",
-                        KeyboardFactory.withdrawalKeyboard(requests, 1, 6), // инлайн-клавиатура
-                        KeyboardFactory.adminKeyboard(), // обычная клавиатура
+                        KeyboardFactory.withdrawalKeyboard(requests, 1, 6),
+                        KeyboardFactory.adminKeyboard(),
                         lastBotMessages);
                 break;
         }
