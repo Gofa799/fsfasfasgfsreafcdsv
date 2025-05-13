@@ -187,14 +187,14 @@ public class DatabaseService {
 
     public List<WithdrawalRequest> getAllWithdrawalRequests() {
         List<WithdrawalRequest> requests = new ArrayList<>();
-        String sql = "SELECT user_id, amount FROM withdrawals ORDER BY date DESC";
+        String sql = "SELECT roblox_username, amount FROM withdrawals ORDER BY date DESC";
 
         try (Connection conn = DriverManager.getConnection(url, user, password);
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
-                long userId = rs.getLong("user_id");
+                long userId = rs.getLong("roblox_username");
                 int amount = rs.getInt("amount");
 
 

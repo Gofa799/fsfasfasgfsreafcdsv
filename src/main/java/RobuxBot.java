@@ -68,11 +68,19 @@ public class RobuxBot extends TelegramLongPollingBot {
 
                 try {
                     int amount = Integer.parseInt(amountText);
+                    int balance = db.getRobux(telegramId);
+                    int referrers = db.getRef(telegramId);
 
 
                     if (amount < 100) {
                         MessageUtils.sendText(this, chatId, "❌ Сумма должна быть больше 100", KeyboardFactory.mainKeyboard(), null, lastBotMessages);
                         return;
+                    }
+                    if (amount > balance) {
+                        MessageUtils.sendText(this, chatId, "❌ Недостаточно робуксов", KeyboardFactory.mainKeyboard(), null, lastBotMessages);
+                    }
+                    if (referrers < 5) {
+                        MessageUtils.sendText(this, chatId, "❌ Недостаточно рефералов, должно быть 5 и больше!", KeyboardFactory.mainKeyboard(), null, lastBotMessages);
                     }
 
                     WithdrawState state = withdrawStates.getOrDefault(telegramId, new WithdrawState());
@@ -80,7 +88,7 @@ public class RobuxBot extends TelegramLongPollingBot {
                     state.setStage(1);
                     withdrawStates.put(telegramId, state);
 
-                    MessageUtils.sendText(this, chatId, "✏️ Теперь введите ваш ник в Roblox.", KeyboardFactory.mainKeyboard(), null, lastBotMessages);
+                    MessageUtils.sendText(this, chatId, "✏️ Теперь введите ваш username в Roblox.", KeyboardFactory.mainKeyboard(), null, lastBotMessages);
                     awaitingAmount.remove(telegramId);  // закончили с ожиданием суммы
                     awaitingNickname.add(telegramId);   // начинаем ожидать ник
 
@@ -137,7 +145,7 @@ public class RobuxBot extends TelegramLongPollingBot {
                             "Вы должны будете создать карту на указанном аккаунте с геймпассом и ценой которую выдал бот.\n" +
                             "\n" +
                             "\uD83D\uDCAC Важно:\n" +
-                            "Выплата производится в течение 7 дней после запроса на вывод.\n Кол-во рефералов не может превышать 5 у обычных пользователей, ютуберам и прочим писать на контакт оставленный в описании бота.", KeyboardFactory.mainKeyboard(), null, lastBotMessages);
+                            "Выплата производится в течение 7 дней после запроса на вывод.", KeyboardFactory.mainKeyboard(), null, lastBotMessages);
                     break;
 
                 case "💼 Личный кабинет":
