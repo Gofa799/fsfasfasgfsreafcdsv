@@ -120,7 +120,7 @@ public class KeyboardFactory {
     public static InlineKeyboardMarkup profileKeyboard() {
         InlineKeyboardButton withdrawButton = new InlineKeyboardButton();
         withdrawButton.setText("💸 Вывести");
-        withdrawButton.setCallbackData("withdraw");
+        withdrawButton.setCallbackData("withdraw_request");
 
         InlineKeyboardButton backButton = new InlineKeyboardButton();
         backButton.setText("🔙 Назад");

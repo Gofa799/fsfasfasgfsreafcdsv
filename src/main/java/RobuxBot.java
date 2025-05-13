@@ -15,6 +15,11 @@ public class RobuxBot extends TelegramLongPollingBot {
     private final Set<Long> authorizedAdmins = new HashSet<>();
     private final Map<Long, Integer> lastBotMessages = new ConcurrentHashMap<>();
 
+    private final Map<Long, WithdrawState> withdrawStates = new HashMap<>();
+    private final Set<Long> awaitingAmount = new HashSet<>();
+    private final Set<Long> awaitingNickname = new HashSet<>();
+
+
 
 
     @Override
@@ -56,7 +61,54 @@ public class RobuxBot extends TelegramLongPollingBot {
                 MessageUtils.sendText(this, chatId,
                         "Добро пожаловать! RobuxLoot — уникальный сервис для заработка робуксов! Для начала нажми кнопку Задания.",
                         KeyboardFactory.mainKeyboard(), null, lastBotMessages);
-                return; // чтобы не проваливаться дальше в switch
+                return;
+            }
+            if (awaitingAmount.contains(telegramId)) {
+                String amountText = text.trim();
+
+                try {
+                    int amount = Integer.parseInt(amountText);
+
+
+                    if (amount < 100) {
+                        MessageUtils.sendText(this, chatId, "❌ Сумма должна быть больше 100", KeyboardFactory.mainKeyboard(), null, lastBotMessages);
+                        return;
+                    }
+
+                    WithdrawState state = withdrawStates.getOrDefault(telegramId, new WithdrawState());
+                    state.setAmount(amount);
+                    state.setStage(1);
+                    withdrawStates.put(telegramId, state);
+
+                    MessageUtils.sendText(this, chatId, "✏️ Теперь введите ваш ник в Roblox.", KeyboardFactory.mainKeyboard(), null, lastBotMessages);
+                    awaitingAmount.remove(telegramId);  // закончили с ожиданием суммы
+                    awaitingNickname.add(telegramId);   // начинаем ожидать ник
+
+                } catch (NumberFormatException e) {
+                    MessageUtils.sendText(this, chatId, "❌ Введите корректное число.", KeyboardFactory.mainKeyboard(), null, lastBotMessages);
+                }
+
+                return;
+            }
+            if (awaitingNickname.contains(telegramId)) {
+                String nickname = text.trim();
+
+                WithdrawState state = withdrawStates.getOrDefault(telegramId, null);
+                if (state == null || state.getStage() != 1) {
+                    MessageUtils.sendText(this, chatId, "❗ Что-то пошло не так. Попробуйте ещё раз позже.", KeyboardFactory.mainKeyboard(), null, lastBotMessages);
+                    return;
+                }
+
+                state.setNickname(nickname);
+                state.setStage(2);
+                withdrawStates.put(telegramId, state);
+
+                db.addWithdrawalRequest(telegramId, state.getAmount(), nickname); // Предполагаем, что у вас есть такой метод
+
+                MessageUtils.sendText(this, chatId, "✅ Заявка на вывод отправлена!", KeyboardFactory.mainKeyboard(), null, lastBotMessages);
+
+                awaitingNickname.remove(telegramId);
+                return;
             }
 
             switch (text) {
@@ -135,7 +187,10 @@ public class RobuxBot extends TelegramLongPollingBot {
                 int taskIndex = Integer.parseInt(data.substring("task_".length()));
                 Task task = db.getAvailableTasks(telegramId).get(taskIndex);
                 InlineKeyboardMarkup keyboard = KeyboardFactory.taskDetailsKeyboard(task);
-                String text = "📝 " + task.getTitle() + "\n\n" + task.getDescription();
+                String text = "📝 " + task.getTitle() + "\n\n" +
+                        task.getDescription() + "\n\n" +
+                        "💰 Награда: " + task.getReward() + "Робуксов";
+
                 MessageUtils.sendText(this, chatId, text, keyboard, null, lastBotMessages);
             }
             else if (data.startsWith("check_task_")) {
@@ -178,7 +233,10 @@ public class RobuxBot extends TelegramLongPollingBot {
                 MessageUtils.sendText(this, chatId,
                         "❌ Вы ещё не выполнили задание. Пожалуйста, выполните его и попробуйте снова.",
                         KeyboardFactory.mainKeyboard(), null, lastBotMessages);
-            }
+            }} else if (data.equals("withdraw_request")) {
+                awaitingAmount.add(telegramId);
+                withdrawStates.put(telegramId, new WithdrawState());
+                MessageUtils.sendText(this, chatId, "💸 Введите сумму для вывода:",KeyboardFactory.mainKeyboard(),null, lastBotMessages);
 
             } else if (data.startsWith("withdrawals_prev_")) {
                 int currentPage = Integer.parseInt(data.substring("withdrawals_prev_".length()));

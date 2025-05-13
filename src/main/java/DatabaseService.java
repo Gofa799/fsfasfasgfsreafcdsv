@@ -187,7 +187,7 @@ public class DatabaseService {
 
     public List<WithdrawalRequest> getAllWithdrawalRequests() {
         List<WithdrawalRequest> requests = new ArrayList<>();
-        String sql = "SELECT user_id, amount, date FROM withdrawals ORDER BY date DESC";
+        String sql = "SELECT user_id, amount FROM withdrawals ORDER BY date DESC";
 
         try (Connection conn = DriverManager.getConnection(url, user, password);
              PreparedStatement stmt = conn.prepareStatement(sql);
@@ -196,9 +196,9 @@ public class DatabaseService {
             while (rs.next()) {
                 long userId = rs.getLong("user_id");
                 int amount = rs.getInt("amount");
-                String date = rs.getTimestamp("date").toString();
 
-                WithdrawalRequest request = new WithdrawalRequest(userId, amount, date);
+
+                WithdrawalRequest request = new WithdrawalRequest(userId, amount);
                 requests.add(request);
             }
 
@@ -207,5 +207,18 @@ public class DatabaseService {
         }
 
         return requests;
+    }
+    public boolean addWithdrawalRequest(long telegramId, double amount, String robloxUsername) {
+        try (Connection conn = DriverManager.getConnection(url, user, password);
+             PreparedStatement ps = conn.prepareStatement(
+                     "INSERT INTO withdraw_requests (telegram_id, amount, roblox_username) VALUES (?, ?, ?)")) {
+            ps.setLong(1, telegramId);
+            ps.setDouble(2, amount);
+            ps.setString(3, robloxUsername);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }
