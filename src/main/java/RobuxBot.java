@@ -265,6 +265,11 @@ public class RobuxBot extends TelegramLongPollingBot {
                     KeyboardFactory.mainKeyboard(), null, lastBotMessages);
             MessageUtils.deleteMessage(this, chatId, messageId);
         }
+            else if (data.equals("back_to_tasks")) {
+
+                List<Task> tasks = db.getAvailableTasks(telegramId);
+                MessageUtils.sendText(this, chatId, "Доступные задания(скоро будет больше):", KeyboardFactory.taskKeyboard(tasks, 1, 6), null, lastBotMessages);
+            }
 
         }
     }
