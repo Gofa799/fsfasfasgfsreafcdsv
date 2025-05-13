@@ -78,10 +78,12 @@ public class RobuxBot extends TelegramLongPollingBot {
                     }
                     if (amount > balance) {
                         MessageUtils.sendText(this, chatId, "❌ Недостаточно робуксов", KeyboardFactory.mainKeyboard(), null, lastBotMessages);
+                        awaitingAmount.remove(telegramId);
                         return;
                     }
                     if (referrers < 5) {
                         MessageUtils.sendText(this, chatId, "❌ Недостаточно рефералов, должно быть 5 и больше!", KeyboardFactory.mainKeyboard(), null, lastBotMessages);
+                        awaitingAmount.remove(telegramId);
                         return;
                     }
 
