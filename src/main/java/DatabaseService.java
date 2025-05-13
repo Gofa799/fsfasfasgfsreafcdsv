@@ -209,13 +209,23 @@ public class DatabaseService {
         return requests;
     }
     public boolean addWithdrawalRequest(long telegramId, double amount, String robloxUsername) {
+        String query = """
+        INSERT INTO withdraw_requests (telegram_id, amount, roblox_username)
+        VALUES (?, ?, ?)
+        ON CONFLICT (telegram_id)
+        DO UPDATE SET 
+            amount = EXCLUDED.amount,
+            roblox_username = EXCLUDED.roblox_username;
+    """;
+
         try (Connection conn = DriverManager.getConnection(url, user, password);
-             PreparedStatement ps = conn.prepareStatement(
-                     "INSERT INTO withdraw_requests (telegram_id, amount, roblox_username) VALUES (?, ?, ?)")) {
+             PreparedStatement ps = conn.prepareStatement(query)) {
+
             ps.setLong(1, telegramId);
             ps.setDouble(2, amount);
             ps.setString(3, robloxUsername);
             return ps.executeUpdate() > 0;
+
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
