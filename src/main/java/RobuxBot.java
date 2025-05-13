@@ -248,8 +248,7 @@ public class RobuxBot extends TelegramLongPollingBot {
                 int index = Integer.parseInt(data.substring("withdrawal_".length()));
                 WithdrawalRequest req = db.getAllWithdrawalRequests().get(index);
                 String info = "👤 Пользователь: " + req.getUserId() +
-                        "\n💰 Сумма: " + req.getAmount() +
-                        "\n📅 Дата: " + req.getDate();
+                        "\n💰 Сумма: " + req.getAmount();
                 MessageUtils.sendText(this, chatId, info, KeyboardFactory.adminKeyboard(), null, lastBotMessages);
             } else if (data.equals("back_to_menu")) {
 
