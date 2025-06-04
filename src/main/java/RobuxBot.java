@@ -59,7 +59,7 @@ public class RobuxBot extends TelegramLongPollingBot {
                 db.addUserIfNotExists(telegramId, username, referrerId);
 
                 MessageUtils.sendText(this, chatId,
-                        "Добро пожаловать! RobuxLoot — уникальный сервис для заработка робуксов! Для начала нажми кнопку Робуксы.",
+                        "Добро пожаловать! RobuxLoot — уникальный сервис для фарма робуксов! Для начала нажми кнопку Робуксы.",
                         KeyboardFactory.mainKeyboard(), null, lastBotMessages);
                 return;
             }
@@ -82,7 +82,7 @@ public class RobuxBot extends TelegramLongPollingBot {
                         return;
                     }
                     if (referrers < 5) {
-                        MessageUtils.sendText(this, chatId, "❌ Недостаточно рефералов, должно быть 5 и больше!", KeyboardFactory.mainKeyboard(), null, lastBotMessages);
+                        MessageUtils.sendText(this, chatId, "❌ Недостаточно друзей, должно быть 5 и больше!", KeyboardFactory.mainKeyboard(), null, lastBotMessages);
                         awaitingAmount.remove(telegramId);
                         return;
                     }
@@ -161,8 +161,8 @@ public class RobuxBot extends TelegramLongPollingBot {
                             "\n🆔 ID: " + telegramId +
                             "\n💰 Робуксы: " + robux +
                             "\n✅ Выполнено: " + completed +
-                            "\n👤 Рефералы: " + referrers +
-                            "\n🔗 Ваша реферальная ссылка: https://t.me/" + getBotUsername() + "?start=" + telegramId;
+                            "\n👤 Друзья: " + referrers +
+                            "\n🔗 Ваша реферальная ссылка для друга: https://t.me/" + getBotUsername() + "?start=" + telegramId;
 
                     MessageUtils.sendText(this, chatId, profile, KeyboardFactory.profileKeyboard(), null, lastBotMessages);
                     break;
