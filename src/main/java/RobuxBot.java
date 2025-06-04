@@ -59,7 +59,7 @@ public class RobuxBot extends TelegramLongPollingBot {
                 db.addUserIfNotExists(telegramId, username, referrerId);
 
                 MessageUtils.sendText(this, chatId,
-                        "Добро пожаловать! RobuxLoot — уникальный сервис для заработка робуксов! Для начала нажми кнопку Задания.",
+                        "Добро пожаловать! RobuxLoot — уникальный сервис для заработка робуксов! Для начала нажми кнопку Робуксы.",
                         KeyboardFactory.mainKeyboard(), null, lastBotMessages);
                 return;
             }
@@ -160,15 +160,15 @@ public class RobuxBot extends TelegramLongPollingBot {
                     String profile = "👤 Профиль: @" + (username != null ? username : "Без ника") +
                             "\n🆔 ID: " + telegramId +
                             "\n💰 Робуксы: " + robux +
-                            "\n✅ Выполнено заданий: " + completed +
+                            "\n✅ Выполнено: " + completed +
                             "\n👤 Рефералы: " + referrers +
                             "\n🔗 Ваша реферальная ссылка: https://t.me/" + getBotUsername() + "?start=" + telegramId;
 
                     MessageUtils.sendText(this, chatId, profile, KeyboardFactory.profileKeyboard(), null, lastBotMessages);
                     break;
-                case "📋 Задания":
+                case "📋 Робуксы":
                     List<Task> tasks = db.getAvailableTasks(telegramId);
-                    MessageUtils.sendText(this, chatId, "Доступные задания(скоро будет больше):", KeyboardFactory.taskKeyboard(tasks, 1, 6), null, lastBotMessages);
+                    MessageUtils.sendText(this, chatId, "Доступные испытания(скоро будет больше):", KeyboardFactory.taskKeyboard(tasks, 1, 6), null, lastBotMessages);
                     break;
                 case "🛠 Админ-панель":
                 case "📊 Отчёт":
@@ -219,7 +219,7 @@ public class RobuxBot extends TelegramLongPollingBot {
             }
 
             if (task == null) {
-                MessageUtils.sendText(this, chatId, "❗ Задание не найдено.", KeyboardFactory.mainKeyboard(), null, lastBotMessages);
+                MessageUtils.sendText(this, chatId, "❗ Испытание не найдено.", KeyboardFactory.mainKeyboard(), null, lastBotMessages);
                 return;
             }
 
@@ -235,16 +235,16 @@ public class RobuxBot extends TelegramLongPollingBot {
                 boolean submitted = db.submitTask(telegramId, taskId);
                 if (submitted) {
                     MessageUtils.sendText(this, chatId,
-                            "✅ Задание выполнено! Вам начислено " + task.getReward() + " робуксов.",
+                            "✅ Испытание пройденно! Вам начислено " + task.getReward() + " робуксов.",
                             KeyboardFactory.mainKeyboard(), null, lastBotMessages);
                 } else {
                     MessageUtils.sendText(this, chatId,
-                            "⚠️ Вы уже выполняли это задание.",
+                            "⚠️ Вы уже проходили это испытание.",
                             KeyboardFactory.mainKeyboard(), null, lastBotMessages);
                 }
             } else {
                 MessageUtils.sendText(this, chatId,
-                        "❌ Вы ещё не выполнили задание. Пожалуйста, выполните его и попробуйте снова.",
+                        "❌ Вы ещё не выполнили испытание. Пожалуйста, выполните его и попробуйте снова.",
                         KeyboardFactory.mainKeyboard(), null, lastBotMessages);
             }} else if (data.equals("withdraw_request")) {
                 awaitingAmount.add(telegramId);
@@ -273,7 +273,7 @@ public class RobuxBot extends TelegramLongPollingBot {
             else if (data.equals("back_to_tasks")) {
 
                 List<Task> tasks = db.getAvailableTasks(telegramId);
-                MessageUtils.sendText(this, chatId, "Доступные задания(скоро будет больше):", KeyboardFactory.taskKeyboard(tasks, 1, 6), null, lastBotMessages);
+                MessageUtils.sendText(this, chatId, "Доступные испытания(скоро будет больше):", KeyboardFactory.taskKeyboard(tasks, 1, 6), null, lastBotMessages);
             }
 
         }
@@ -284,7 +284,7 @@ public class RobuxBot extends TelegramLongPollingBot {
             EditMessageText edit = new EditMessageText();
             edit.setChatId(String.valueOf(chatId));
             edit.setMessageId(messageId);
-            edit.setText("Доступные задания:");
+            edit.setText("Доступные испытания:");
             edit.setReplyMarkup(KeyboardFactory.taskKeyboard(tasks, page, 6));
             execute(edit);
         } catch (Exception e) {
