@@ -12,7 +12,7 @@ public class KeyboardFactory {
     public static ReplyKeyboardMarkup mainKeyboard() {
         KeyboardRow row1 = new KeyboardRow();
         row1.add(new KeyboardButton("💼 Личный кабинет"));
-        row1.add(new KeyboardButton("📋 Робуксы"));
+        row1.add(new KeyboardButton("📋 Задания"));
 
         KeyboardRow row2 = new KeyboardRow();
         row2.add(new KeyboardButton("❓ Помощь"));
@@ -30,7 +30,7 @@ public class KeyboardFactory {
     public static ReplyKeyboardMarkup adminKeyboard() {
         KeyboardRow row1 = new KeyboardRow();
         row1.add(new KeyboardButton("📊 Отчёт"));
-        row1.add(new KeyboardButton("📋 Робуксы"));
+        row1.add(new KeyboardButton("📋 Задания"));
 
         KeyboardRow row2 = new KeyboardRow();
         row2.add(new KeyboardButton("💼 Личный кабинет"));
@@ -104,7 +104,7 @@ public class KeyboardFactory {
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
 
         if ("subscribe".equalsIgnoreCase(task.getType())) {
-            InlineKeyboardButton checkButton = new InlineKeyboardButton("✅ Проверить испытание");
+            InlineKeyboardButton checkButton = new InlineKeyboardButton("✅ Проверить задание");
             checkButton.setCallbackData("check_task_" + task.getId());
             rows.add(List.of(checkButton));
         }

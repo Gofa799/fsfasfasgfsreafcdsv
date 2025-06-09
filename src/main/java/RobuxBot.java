@@ -59,7 +59,7 @@ public class RobuxBot extends TelegramLongPollingBot {
                 db.addUserIfNotExists(telegramId, username, referrerId);
 
                 MessageUtils.sendText(this, chatId,
-                        "Добро пожаловать! RobuxLoot — уникальный сервис для фарма робуксов! Для начала нажми кнопку Робуксы.",
+                        "Добро пожаловать! RobuxLoot — уникальный сервис для фарма R! Для начала нажми кнопку Задания.",
                         KeyboardFactory.mainKeyboard(), null, lastBotMessages);
                 return;
             }
@@ -77,7 +77,7 @@ public class RobuxBot extends TelegramLongPollingBot {
                         return;
                     }
                     if (amount > balance) {
-                        MessageUtils.sendText(this, chatId, "❌ Недостаточно робуксов", KeyboardFactory.mainKeyboard(), null, lastBotMessages);
+                        MessageUtils.sendText(this, chatId, "❌ Недостаточно монеток", KeyboardFactory.mainKeyboard(), null, lastBotMessages);
                         awaitingAmount.remove(telegramId);
                         return;
                     }
@@ -118,7 +118,7 @@ public class RobuxBot extends TelegramLongPollingBot {
 
                 db.addWithdrawalRequest(telegramId, state.getAmount(), nickname);
 
-                MessageUtils.sendText(this, chatId, "✅ Заявка на вывод отправлена!", KeyboardFactory.mainKeyboard(), null, lastBotMessages);
+                MessageUtils.sendText(this, chatId, "✅ Заявка на обмен отправлена!", KeyboardFactory.mainKeyboard(), null, lastBotMessages);
 
                 awaitingNickname.remove(telegramId);
                 return;
@@ -134,23 +134,20 @@ public class RobuxBot extends TelegramLongPollingBot {
                     }
                     break;
                 case "❓ Помощь":
-                    MessageUtils.sendText(this, chatId, "❓ Помощь — Как вывести валюту\n" +
+                    MessageUtils.sendText(this, chatId, "❓ Помощь — Как обменять валюту\n" +
                             "Чтобы подать заявку на вывод, выполните следующие шаги:\n" +
                             "\n" +
-                            "Нажмите \"\uD83D\uDCBC Личный кабинет\", затем выберите 💸 Вывести\".\n" +
+                            "Нажмите \"\uD83D\uDCBC Личный кабинет\", затем выберите 💸 Обменять\".\n" +
                             "\n" +
                             "\uD83D\uDCACВ одном сообщении укажите:" +
                             "\n" +
-                            "Ваш ник в Roblox." +
+                            "Ваш ник в роблоkс." +
                             "\n" +
-                            "Затем желаемую сумму вывода.\n" +
+                            "Затем желаемую сумму обмена(1 монетка = 1R).\n" +
                             "\n" +
-                            "После отправки заявки:" +
-                            "\n" +
-                            "Вы должны будете создать карту на указанном аккаунте с геймпассом и ценой которую выдал бот.\n" +
                             "\n" +
                             "\uD83D\uDCAC Важно:\n" +
-                            "Выплата производится в течение 7 дней после запроса на вывод.", KeyboardFactory.mainKeyboard(), null, lastBotMessages);
+                            "Обмен производится в течение 7 дней после запроса на обмен.", KeyboardFactory.mainKeyboard(), null, lastBotMessages);
                     break;
 
                 case "💼 Личный кабинет":
@@ -159,14 +156,14 @@ public class RobuxBot extends TelegramLongPollingBot {
                     int referrers = db.getRef(telegramId);
                     String profile = "👤 Профиль: @" + (username != null ? username : "Без ника") +
                             "\n🆔 ID: " + telegramId +
-                            "\n💰 Робуксы: " + robux +
+                            "\n💰 Монетки: " + robux +
                             "\n✅ Выполнено: " + completed +
                             "\n👤 Друзья: " + referrers +
                             "\n🔗 Ваша реферальная ссылка для друга: https://t.me/" + getBotUsername() + "?start=" + telegramId;
 
                     MessageUtils.sendText(this, chatId, profile, KeyboardFactory.profileKeyboard(), null, lastBotMessages);
                     break;
-                case "📋 Робуксы":
+                case "📋 Задания":
                     List<Task> tasks = db.getAvailableTasks(telegramId);
                     MessageUtils.sendText(this, chatId, "Доступные испытания(скоро будет больше):", KeyboardFactory.taskKeyboard(tasks, 1, 6), null, lastBotMessages);
                     break;
@@ -202,7 +199,7 @@ public class RobuxBot extends TelegramLongPollingBot {
                 InlineKeyboardMarkup keyboard = KeyboardFactory.taskDetailsKeyboard(task);
                 String text = "📝 " + task.getTitle() + "\n\n" +
                         task.getDescription() + "\n\n" +
-                        "💰 Награда: " + task.getReward() + "Робуксов";
+                        "💰 Награда: " + task.getReward() + "монеток";
 
                 MessageUtils.sendText(this, chatId, text, keyboard, null, lastBotMessages);
             }
@@ -219,7 +216,7 @@ public class RobuxBot extends TelegramLongPollingBot {
             }
 
             if (task == null) {
-                MessageUtils.sendText(this, chatId, "❗ Испытание не найдено.", KeyboardFactory.mainKeyboard(), null, lastBotMessages);
+                MessageUtils.sendText(this, chatId, "❗ Задание не найдено.", KeyboardFactory.mainKeyboard(), null, lastBotMessages);
                 return;
             }
 
@@ -235,16 +232,16 @@ public class RobuxBot extends TelegramLongPollingBot {
                 boolean submitted = db.submitTask(telegramId, taskId);
                 if (submitted) {
                     MessageUtils.sendText(this, chatId,
-                            "✅ Испытание пройденно! Вам начислено " + task.getReward() + " робуксов.",
+                            "✅ Задание пройденно! Вам начислено " + task.getReward() + " монеток.",
                             KeyboardFactory.mainKeyboard(), null, lastBotMessages);
                 } else {
                     MessageUtils.sendText(this, chatId,
-                            "⚠️ Вы уже проходили это испытание.",
+                            "⚠️ Вы уже проходили это Задание.",
                             KeyboardFactory.mainKeyboard(), null, lastBotMessages);
                 }
             } else {
                 MessageUtils.sendText(this, chatId,
-                        "❌ Вы ещё не выполнили испытание. Пожалуйста, выполните его и попробуйте снова.",
+                        "❌ Вы ещё не выполнили Задание. Пожалуйста, выполните его и попробуйте снова.",
                         KeyboardFactory.mainKeyboard(), null, lastBotMessages);
             }} else if (data.equals("withdraw_request")) {
                 awaitingAmount.add(telegramId);
@@ -284,7 +281,7 @@ public class RobuxBot extends TelegramLongPollingBot {
             EditMessageText edit = new EditMessageText();
             edit.setChatId(String.valueOf(chatId));
             edit.setMessageId(messageId);
-            edit.setText("Доступные испытания:");
+            edit.setText("Задания:");
             edit.setReplyMarkup(KeyboardFactory.taskKeyboard(tasks, page, 6));
             execute(edit);
         } catch (Exception e) {
