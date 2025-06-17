@@ -319,8 +319,13 @@ public class RobuxBot extends TelegramLongPollingBot {
 
         for (Submission s : submissions) {
             try {
+                String channel = s.getChannel();
+                if (!channel.startsWith("@")) {
+                    channel = "@" + channel;
+                }
+
                 GetChatMember chatMember = new GetChatMember();
-                chatMember.setChatId(s.getChannel());
+                chatMember.setChatId(channel);
                 chatMember.setUserId(s.getUserId());
 
                 ChatMember member = execute(chatMember);
@@ -336,13 +341,13 @@ public class RobuxBot extends TelegramLongPollingBot {
                 checked++;
                 Thread.sleep(50); // не спамим
             } catch (Exception e) {
-                e.printStackTrace();
+                e.printStackTrace(); // совет: логгировать id и канал для отладки
             }
         }
 
         MessageUtils.sendText(this, adminChatId,
                 "✅ Проверка завершена.\n👥 Проверено: " + checked + "\n❌ Удалено: " + removed,
-                KeyboardFactory.adminKeyboard(),null, lastBotMessages);
+                KeyboardFactory.adminKeyboard(), null, lastBotMessages);
     }
     private void broadcastMessage(String message) {
         List<Long> allUsers = db.getAllUserIds();

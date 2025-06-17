@@ -58,7 +58,7 @@ public class DatabaseService {
         List<Submission> submissions = new ArrayList<>();
 
         String query = """
-        SELECT ut.telegram_id, ut.task_id, t.target, t.reward
+        SELECT ut.telegram_id, ut.task_id, t.channel_username, t.reward
         FROM user_tasks ut
         JOIN tasks t ON t.id = ut.task_id
         WHERE t.type = 'subscribe'
