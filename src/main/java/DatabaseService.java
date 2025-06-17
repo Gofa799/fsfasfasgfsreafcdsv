@@ -23,7 +23,7 @@ public class DatabaseService {
 
             try (PreparedStatement insertStmt = conn.prepareStatement(
                     "INSERT INTO users (telegram_id, username, balance, referrer_id) " +
-                            "VALUES (?, ?, 20, ?) " +
+                            "VALUES (?, ?, 0, ?) " +
                             "ON CONFLICT (telegram_id) DO NOTHING")) {
                 insertStmt.setLong(1, telegramId);
                 insertStmt.setString(2, username);
@@ -50,6 +50,67 @@ public class DatabaseService {
             } finally {
                 conn.setAutoCommit(true);
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    public List<Submission> getAllSubscribeSubmissions() {
+        List<Submission> submissions = new ArrayList<>();
+
+        String query = """
+        SELECT ut.telegram_id, ut.task_id, t.target, t.reward
+        FROM user_tasks ut
+        JOIN tasks t ON t.id = ut.task_id
+        WHERE t.type = 'subscribe'
+    """;
+
+        try (Connection conn = DriverManager.getConnection(url, user, password);
+             PreparedStatement stmt = conn.prepareStatement(query);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                long userId = rs.getLong("telegram_id");
+                long taskId = rs.getLong("task_id");
+                String channel = rs.getString("target");
+                double reward = rs.getDouble("reward");
+
+                submissions.add(new Submission(userId, taskId, channel, reward));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return submissions;
+    }
+    public void removeTaskSubmission(long userId, long taskId) {
+        String query = "DELETE FROM user_tasks WHERE telegram_id = ? AND task_id = ?";
+        try (Connection conn = DriverManager.getConnection(url, user, password);
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setLong(1, userId);
+            stmt.setLong(2, taskId);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    public void deductBalance(long userId, double amount) {
+        String query = "UPDATE users SET balance = balance - ? WHERE telegram_id = ?";
+        try (Connection conn = DriverManager.getConnection(url, user, password);
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setDouble(1, amount);
+            stmt.setLong(2, userId);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    public void decrementTaskCompletions(long taskId) {
+        String query = "UPDATE tasks SET current_completions = current_completions - 1 WHERE id = ?";
+        try (Connection conn = DriverManager.getConnection(url, user, password);
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setLong(1, taskId);
+            stmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -183,6 +244,23 @@ public class DatabaseService {
             e.printStackTrace();
         }
         return 0;
+    }
+    public List<Long> getAllUserIds() {
+        List<Long> ids = new ArrayList<>();
+        String sql = "SELECT telegram_id FROM users";
+
+        try (Connection conn = DriverManager.getConnection(url, user, password);
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                ids.add(rs.getLong("telegram_id"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return ids;
     }
 
     public List<WithdrawalRequest> getAllWithdrawalRequests() {

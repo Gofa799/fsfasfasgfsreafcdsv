@@ -1,8 +1,10 @@
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChatMember;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+import org.telegram.telegrambots.meta.api.objects.chatmember.ChatMember;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 
 
@@ -18,6 +20,7 @@ public class RobuxBot extends TelegramLongPollingBot {
     private final Map<Long, WithdrawState> withdrawStates = new HashMap<>();
     private final Set<Long> awaitingAmount = new HashSet<>();
     private final Set<Long> awaitingNickname = new HashSet<>();
+    private final Map<Long, Boolean> awaitingBroadcastText = new ConcurrentHashMap<>();
 
 
 
@@ -72,8 +75,8 @@ public class RobuxBot extends TelegramLongPollingBot {
                     int referrers = db.getRef(telegramId);
 
 
-                    if (amount < 100) {
-                        MessageUtils.sendText(this, chatId, "❌ Сумма должна быть больше 100", KeyboardFactory.mainKeyboard(), null, lastBotMessages);
+                    if (amount <= 10) {
+                        MessageUtils.sendText(this, chatId, "❌ Сумма должна быть от 10", KeyboardFactory.mainKeyboard(), null, lastBotMessages);
                         return;
                     }
                     if (amount > balance) {
@@ -123,6 +126,12 @@ public class RobuxBot extends TelegramLongPollingBot {
                 awaitingNickname.remove(telegramId);
                 return;
             }
+            if (awaitingBroadcastText.getOrDefault(chatId, false)) {
+                awaitingBroadcastText.put(chatId, false);
+                broadcastMessage(text);
+                MessageUtils.sendText(this, chatId, "✅ Рассылка завершена.", KeyboardFactory.adminKeyboard(),null, lastBotMessages);
+                return;
+            }
 
             switch (text) {
                 case "/login":
@@ -134,7 +143,7 @@ public class RobuxBot extends TelegramLongPollingBot {
                     }
                     break;
                 case "❓ Помощь":
-                    MessageUtils.sendText(this, chatId, "❓ Помощь — Как обменять валюту\n" +
+                    MessageUtils.sendText(this, chatId, "❓ Помощь — Как обменять монетки\n" +
                             "Чтобы подать заявку на вывод, выполните следующие шаги:\n" +
                             "\n" +
                             "Нажмите \"\uD83D\uDCBC Личный кабинет\", затем выберите 💸 Обменять\".\n" +
@@ -143,8 +152,8 @@ public class RobuxBot extends TelegramLongPollingBot {
                             "\n" +
                             "Ваш ник в роблоkс." +
                             "\n" +
-                            "Затем желаемую сумму обмена(1 монетка = 1R).\n" +
-                            "\n" +
+                            "Затем желаемую сумму обмена(1 монетка = 1R). Минимальная сумма обмена 10 монеток(10R)\n" +
+                            "У вас должен стоять геймпасс на сумму которую вы выводите, иначе вывести не получится" +
                             "\n" +
                             "\uD83D\uDCAC Важно:\n" +
                             "Обмен производится в течение 7 дней после запроса на обмен.", KeyboardFactory.mainKeyboard(), null, lastBotMessages);
@@ -165,7 +174,7 @@ public class RobuxBot extends TelegramLongPollingBot {
                     break;
                 case "📋 Задания":
                     List<Task> tasks = db.getAvailableTasks(telegramId);
-                    MessageUtils.sendText(this, chatId, "Доступные испытания(скоро будет больше):", KeyboardFactory.taskKeyboard(tasks, 1, 6), null, lastBotMessages);
+                    MessageUtils.sendText(this, chatId, "Доступные задания(скоро будет больше):", KeyboardFactory.taskKeyboard(tasks, 1, 6), null, lastBotMessages);
                     break;
                 case "🛠 Админ-панель":
                 case "📊 Отчёт":
@@ -301,12 +310,63 @@ public class RobuxBot extends TelegramLongPollingBot {
             e.printStackTrace();
         }
     }
+    private void checkSubscriptions(long adminChatId) {
+        List<Submission> submissions = db.getAllSubscribeSubmissions();
+
+        int checked = 0, removed = 0;
+
+        for (Submission s : submissions) {
+            try {
+                GetChatMember chatMember = new GetChatMember();
+                chatMember.setChatId(s.getChannel());
+                chatMember.setUserId(s.getUserId());
+
+                ChatMember member = execute(chatMember);
+                String status = member.getStatus();
+
+                if (status.equals("left") || status.equals("kicked")) {
+                    db.removeTaskSubmission(s.getUserId(), s.getTaskId());
+                    db.deductBalance(s.getUserId(), s.getReward());
+                    db.decrementTaskCompletions(s.getTaskId());
+                    removed++;
+                }
+
+                checked++;
+                Thread.sleep(50); // не спамим
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        MessageUtils.sendText(this, adminChatId,
+                "✅ Проверка завершена.\n👥 Проверено: " + checked + "\n❌ Удалено: " + removed,
+                KeyboardFactory.adminKeyboard(),null, lastBotMessages);
+    }
+    private void broadcastMessage(String message) {
+        List<Long> allUsers = db.getAllUserIds();
+
+        for (Long userId : allUsers) {
+            try {
+                MessageUtils.sendText(this, userId, message, KeyboardFactory.adminKeyboard(), null, lastBotMessages);
+                Thread.sleep(30); // анти-спам пауза
+            } catch (Exception e) {
+                System.err.println("Не удалось отправить сообщение пользователю: " + userId);
+            }
+        }
+    }
 
     private void handleAdminCommands(long chatId, String command) {
         switch (command) {
+            case "📊Проверить подписки":
+                new Thread(() -> checkSubscriptions(chatId)).start();
+                break;
             case "📊 Отчёт":
                 int users = db.countUsers();
                 MessageUtils.sendText(this, chatId, "👥 Всего пользователей: " + users, KeyboardFactory.adminKeyboard(), null, lastBotMessages);
+                break;
+            case "📨 Рассылка":
+                MessageUtils.sendText(this, chatId, "Введите текст рассылки:",KeyboardFactory.adminKeyboard(), null, lastBotMessages);
+                awaitingBroadcastText.put(chatId, true);
                 break;
             case "📥 Заявки на вывод":
                 List<WithdrawalRequest> requests = db.getAllWithdrawalRequests();
