@@ -350,7 +350,7 @@ public class RobuxBot extends TelegramLongPollingBot {
                 MessageUtils.sendText(this, userId, message, KeyboardFactory.adminKeyboard(), null, lastBotMessages);
                 Thread.sleep(30); // анти-спам пауза
             } catch (Exception e) {
-                System.err.println("Не удалось отправить сообщение пользователю: " + userId);
+                System.err.println("Не удалось отправить сообщение пользователю " + userId);
             }
         }
     }
