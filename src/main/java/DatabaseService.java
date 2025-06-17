@@ -71,7 +71,7 @@ public class DatabaseService {
             while (rs.next()) {
                 long userId = rs.getLong("telegram_id");
                 long taskId = rs.getLong("task_id");
-                String channel = rs.getString("target");
+                String channel = rs.getString("channel_username");
                 double reward = rs.getDouble("reward");
 
                 submissions.add(new Submission(userId, taskId, channel, reward));

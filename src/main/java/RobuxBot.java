@@ -341,7 +341,7 @@ public class RobuxBot extends TelegramLongPollingBot {
                 checked++;
                 Thread.sleep(50); // не спамим
             } catch (Exception e) {
-                e.printStackTrace(); // совет: логгировать id и канал для отладки
+                e.printStackTrace();
             }
         }
 
