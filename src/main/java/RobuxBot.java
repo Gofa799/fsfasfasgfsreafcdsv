@@ -75,7 +75,7 @@ public class RobuxBot extends TelegramLongPollingBot {
                     int referrers = db.getRef(telegramId);
 
 
-                    if (amount <= 10) {
+                    if (amount < 10) {
                         MessageUtils.sendText(this, chatId, "❌ Сумма должна быть от 10", KeyboardFactory.mainKeyboard(), null, lastBotMessages);
                         return;
                     }
