@@ -60,7 +60,7 @@ public class DatabaseService {
         String query = """
         SELECT ut.telegram_id, ut.task_id, t.channel_username, t.reward
         FROM user_tasks ut
-        JOIN tasks t ON t.id = ut.task_id
+        JOIN tasks t ON t.task_id = ut.task_id
         WHERE t.type = 'subscribe'
     """;
 
@@ -106,7 +106,7 @@ public class DatabaseService {
         }
     }
     public void decrementTaskCompletions(long taskId) {
-        String query = "UPDATE tasks SET current_completions = current_completions - 1 WHERE id = ?";
+        String query = "UPDATE tasks SET current_completions = current_completions - 1 WHERE task_id = ?";
         try (Connection conn = DriverManager.getConnection(url, user, password);
              PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setLong(1, taskId);
