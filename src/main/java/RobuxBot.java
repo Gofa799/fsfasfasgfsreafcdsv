@@ -360,7 +360,7 @@ public class RobuxBot extends TelegramLongPollingBot {
     private void handleAdminCommands(long chatId, String command) {
         switch (command) {
             case "📊Проверить подписки":
-                new Thread(() -> checkSubscriptions(chatId)).start();
+                checkSubscriptions(chatId);
                 break;
             case "📊 Отчёт":
                 int users = db.countUsers();
