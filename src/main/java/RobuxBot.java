@@ -180,7 +180,7 @@ public class RobuxBot extends TelegramLongPollingBot {
                 case "📊 Отчёт":
                 case "📥 Заявки на вывод":
                 case "📨 Рассылка":
-                case "📊Проверить подписки":
+                case "📊 Проверить подписки":
                     if (authorizedAdmins.contains(chatId)) {
                         handleAdminCommands(chatId, text);
                     } else {
