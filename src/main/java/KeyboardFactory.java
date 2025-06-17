@@ -31,7 +31,7 @@ public class KeyboardFactory {
         KeyboardRow row1 = new KeyboardRow();
         row1.add(new KeyboardButton("📊 Отчёт"));
         row1.add(new KeyboardButton("📋 Задания"));
-        row1.add(new KeyboardButton("📊Проверить подписки"));
+        row1.add(new KeyboardButton("📊 Проверить подписки"));
 
         KeyboardRow row2 = new KeyboardRow();
         row2.add(new KeyboardButton("💼 Личный кабинет"));
