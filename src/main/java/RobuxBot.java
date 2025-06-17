@@ -370,7 +370,7 @@ public class RobuxBot extends TelegramLongPollingBot {
 
     private void handleAdminCommands(long chatId, String command) {
         switch (command) {
-            case "📊Проверить подписки":
+            case "📊 Проверить подписки":
                 checkSubscriptions(chatId);
                 break;
             case "📊 Отчёт":
