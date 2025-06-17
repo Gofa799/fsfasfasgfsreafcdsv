@@ -313,7 +313,13 @@ public class RobuxBot extends TelegramLongPollingBot {
         }
     }
     private void checkSubscriptions(long adminChatId) {
+        System.out.println("🔍 Начата проверка подписок");
         List<Submission> submissions = db.getAllSubscribeSubmissions();
+        System.out.println("👀 Найдено заданий: " + submissions.size());
+        if (submissions.isEmpty()) {
+            MessageUtils.sendText(this, adminChatId, "❌ Нет подписочных заданий", KeyboardFactory.adminKeyboard(), null, lastBotMessages);
+            return;
+        }
 
         int checked = 0, removed = 0;
 
