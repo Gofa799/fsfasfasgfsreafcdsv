@@ -35,6 +35,8 @@ public class RobuxBot extends TelegramLongPollingBot {
         return System.getenv("BOT_TOKEN");
     }
 
+    private final SubgramClient subgramClient = new SubgramClient(System.getenv("SUBGRAM_TOKEN"));
+
     @Override
     public void onUpdateReceived(Update update) {
         if (update.hasMessage() && update.getMessage().hasText()) {
@@ -176,6 +178,9 @@ public class RobuxBot extends TelegramLongPollingBot {
                     List<Task> tasks = db.getAvailableTasks(telegramId);
                     MessageUtils.sendText(this, chatId, "Доступные задания(скоро будет больше):", KeyboardFactory.taskKeyboard(tasks, 1, 6), null, lastBotMessages);
                     break;
+                case "🎯Задания":
+                    handleSubgramTask(chatId, telegramId); // метод ниже
+                    break;
                 case "🛠 Админ-панель":
                 case "📊 Отчёт":
                 case "📥 Заявки на вывод":
@@ -213,6 +218,12 @@ public class RobuxBot extends TelegramLongPollingBot {
                         "💰 Награда: " + task.getReward() + "монеток";
 
                 MessageUtils.sendText(this, chatId, text, keyboard, null, lastBotMessages);
+            }
+            else if (data.equals("sex_male") || data.equals("sex_female")) {
+                String sex = data.equals("sex_male") ? "male" : "female";
+                db.setUserSex(telegramId, sex);
+                MessageUtils.sendText(this, chatId, "✅ Пол сохранён! Можно перейти к заданиям", KeyboardFactory.mainKeyboard(), null,lastBotMessages);
+                handleSubgramTask(chatId, telegramId); // ← снова вызвать
             }
             else if (data.startsWith("check_task_")) {
             long taskId = Long.parseLong(data.substring("check_task_".length()));
@@ -298,6 +309,42 @@ public class RobuxBot extends TelegramLongPollingBot {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private void handleSubgramTask(long chatId, long userId) {
+        User user = db.getUser(userId);
+
+        // 1. Если пол не указан — спросить
+        if (user.getSex() == null || user.getSex().isEmpty()) {
+            MessageUtils.sendText(this, chatId,
+                    "👤 Укажи свой пол, чтобы получить задания:",
+                    KeyboardFactory.genderButtons(),
+                    null,
+                    lastBotMessages);
+            return;
+        }
+
+        SubgramTask task = subgramClient.getTask(userId);
+        if (task == null) {
+            MessageUtils.sendText(this, chatId,
+                    "🔄 Сейчас нет заданий. Попробуй позже.",
+                    KeyboardFactory.mainKeyboard(),
+                    null,
+                    lastBotMessages);
+            return;
+        }
+
+        db.saveSubgramTask(task);
+
+        String text = "📌 Подпишись на канал:\n" + task.getLink() +
+                "\n\n💰 Награда: " + task.getReward() + " робукс" +
+                "\n\nПосле подписки нажми кнопку ниже:";
+
+        MessageUtils.sendText(this, chatId,
+                text,
+                KeyboardFactory.confirmSubButton(task.getOpId()),
+                null,
+                lastBotMessages);
     }
 
     private void editWithdrawalPage(long chatId, int messageId, List<WithdrawalRequest> requests, int page) {

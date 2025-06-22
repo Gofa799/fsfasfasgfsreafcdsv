@@ -15,6 +15,49 @@ public class DatabaseService {
         this.password = System.getenv("DB_PASSWORD");
 
     }
+    public void saveSubgramTask(SubgramTask task) {
+        String sql = "INSERT INTO subgram_tasks (op_id, telegram_id, channel_link, reward, completed) " +
+                "VALUES (?, ?, ?, ?, false) ON CONFLICT (op_id) DO NOTHING";
+        try (Connection conn = DriverManager.getConnection(url, user, password);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, task.getOpId());
+            stmt.setLong(2, task.getTelegramId());
+            stmt.setString(3, task.getLink());
+            stmt.setInt(4, task.getReward());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    public User getUser(long telegramId) {
+        String sql = "SELECT telegram_id, username, sex FROM users WHERE telegram_id = ?";
+        try (Connection conn = DriverManager.getConnection(url, user, password);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, telegramId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                User user = new User();
+                user.setTelegramId(rs.getLong("telegram_id"));
+                user.setUsername(rs.getString("username"));
+                user.setSex(rs.getString("sex"));
+                return user;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    public void setUserSex(long telegramId, String sex) {
+        String sql = "UPDATE users SET sex = ? WHERE telegram_id = ?";
+        try (Connection conn = DriverManager.getConnection(url, user, password);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, sex);
+            stmt.setLong(2, telegramId);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 
     public void addUserIfNotExists(long telegramId, String username, Long referrerId) {
         try (Connection conn = DriverManager.getConnection(url, user, password)) {
@@ -37,7 +80,7 @@ public class DatabaseService {
 
                 if (affectedRows > 0 && referrerId != null) {
                     try (PreparedStatement rewardStmt = conn.prepareStatement(
-                            "UPDATE users SET balance = balance + 5, referrers = referrers + 1 WHERE telegram_id = ?")) {
+                            "UPDATE users SET balance = balance + 3, referrers = referrers + 1 WHERE telegram_id = ?")) {
                         rewardStmt.setLong(1, referrerId);
                         rewardStmt.executeUpdate();
                     }

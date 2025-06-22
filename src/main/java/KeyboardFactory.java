@@ -12,7 +12,7 @@ public class KeyboardFactory {
     public static ReplyKeyboardMarkup mainKeyboard() {
         KeyboardRow row1 = new KeyboardRow();
         row1.add(new KeyboardButton("💼 Личный кабинет"));
-        row1.add(new KeyboardButton("📋 Задания"));
+        row1.add(new KeyboardButton("🎯Задания"));
 
         KeyboardRow row2 = new KeyboardRow();
         row2.add(new KeyboardButton("❓ Помощь"));
@@ -30,7 +30,7 @@ public class KeyboardFactory {
     public static ReplyKeyboardMarkup adminKeyboard() {
         KeyboardRow row1 = new KeyboardRow();
         row1.add(new KeyboardButton("📊 Отчёт"));
-        row1.add(new KeyboardButton("📋 Задания"));
+        row1.add(new KeyboardButton("🎯Задания"));
         row1.add(new KeyboardButton("📊 Проверить подписки"));
 
         KeyboardRow row2 = new KeyboardRow();
@@ -46,6 +46,17 @@ public class KeyboardFactory {
         markup.setKeyboard(keyboard);
         markup.setResizeKeyboard(true);
         return markup;
+    }
+    public static InlineKeyboardMarkup genderButtons() {
+        return new InlineKeyboardMarkup(List.of(
+                List.of(InlineKeyboardButton.builder().text("👨 Мужской").callbackData("sex_male").build()),
+                List.of(InlineKeyboardButton.builder().text("👩 Женский").callbackData("sex_female").build())
+        ));
+    }
+    public static InlineKeyboardMarkup confirmSubButton(String opId) {
+        return new InlineKeyboardMarkup(List.of(
+                List.of(InlineKeyboardButton.builder().text("✅ Я подписался").callbackData("confirm_sub_" + opId).build())
+        ));
     }
     public static InlineKeyboardMarkup taskKeyboard(List<Task> tasks, int page, int pageSize) {
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
