@@ -30,7 +30,7 @@ public class DatabaseService {
         }
     }
     public User getUser(long telegramId) {
-        String sql = "SELECT telegram_id, username, sex FROM users WHERE telegram_id = ?";
+        String sql = "SELECT telegram_id, username, gender FROM users WHERE telegram_id = ?";
         try (Connection conn = DriverManager.getConnection(url, user, password);
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, telegramId);
@@ -39,7 +39,7 @@ public class DatabaseService {
                 User user = new User();
                 user.setTelegramId(rs.getLong("telegram_id"));
                 user.setUsername(rs.getString("username"));
-                user.setSex(rs.getString("sex"));
+                user.setSex(rs.getString("gender"));
                 return user;
             }
         } catch (SQLException e) {
@@ -48,7 +48,7 @@ public class DatabaseService {
         return null;
     }
     public void setUserSex(long telegramId, String sex) {
-        String sql = "UPDATE users SET sex = ? WHERE telegram_id = ?";
+        String sql = "UPDATE users SET gender = ? WHERE telegram_id = ?";
         try (Connection conn = DriverManager.getConnection(url, user, password);
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, sex);

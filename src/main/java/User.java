@@ -3,7 +3,7 @@ public class User {
     private String username;
     private String sex;
 
-    // --- Геттеры ---
+
     public long getTelegramId() {
         return telegramId;
     }
@@ -16,7 +16,7 @@ public class User {
         return sex;
     }
 
-    // --- Сеттеры ---
+
     public void setTelegramId(long telegramId) {
         this.telegramId = telegramId;
     }

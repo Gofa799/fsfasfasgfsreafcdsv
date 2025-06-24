@@ -179,7 +179,7 @@ public class RobuxBot extends TelegramLongPollingBot {
                     MessageUtils.sendText(this, chatId, "Доступные задания(скоро будет больше):", KeyboardFactory.taskKeyboard(tasks, 1, 6), null, lastBotMessages);
                     break;
                 case "🎯Задания":
-                    handleSubgramTask(chatId, telegramId); // метод ниже
+                    handleSubgramTask(chatId, telegramId);
                     break;
                 case "🛠 Админ-панель":
                 case "📊 Отчёт":
@@ -314,7 +314,7 @@ public class RobuxBot extends TelegramLongPollingBot {
     private void handleSubgramTask(long chatId, long userId) {
         User user = db.getUser(userId);
 
-        // 1. Если пол не указан — спросить
+
         if (user.getSex() == null || user.getSex().isEmpty()) {
             MessageUtils.sendText(this, chatId,
                     "👤 Укажи свой пол, чтобы получить задания:",
