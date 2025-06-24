@@ -323,8 +323,9 @@ public class RobuxBot extends TelegramLongPollingBot {
                     lastBotMessages);
             return;
         }
+        List<String> excludeChannels = new ArrayList<>();
 
-        SubgramTask task = subgramClient.getTask(userId);
+        SubgramTask task = subgramClient.getTask(user, excludeChannels);
         if (task == null) {
             MessageUtils.sendText(this, chatId,
                     "🔄 Сейчас нет заданий. Попробуй позже.",

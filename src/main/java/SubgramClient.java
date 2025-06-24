@@ -1,8 +1,10 @@
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.List;
 
 public class SubgramClient {
 
@@ -13,21 +15,34 @@ public class SubgramClient {
         this.token = token;
     }
 
-    public SubgramTask getTask(long telegramId) {
+    public SubgramTask getTask(User user, List<String> excludeChannelIds) {
         try {
-            String url = API_URL + "get-task?telegram_id=" + telegramId + "&token=" + token;
-            JSONObject response = sendGet(url);
-            if (response.has("link")) {
+            String url = "https://api.subgram.ru/request-op/";
+
+            JSONObject body = new JSONObject();
+            body.put("UserId", user.getTelegramId());
+            body.put("ChatId", user.getTelegramId());
+            body.put("Gender", user.getSex());
+            body.put("action", "subscribe");
+            body.put("exclude_channel_ids", excludeChannelIds != null ? excludeChannelIds : new JSONArray());
+
+            body.put("token", token);
+
+            JSONObject response = sendPost(url, body);
+
+            if (response.optBoolean("success", false) && response.has("link")) {
                 return new SubgramTask(
-                        telegramId,
+                        user.getTelegramId(),
                         response.getString("link"),
                         response.getInt("reward"),
                         response.getString("op_id")
                 );
             }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
+
         return null;
     }
 
