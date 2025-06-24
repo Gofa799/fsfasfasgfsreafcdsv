@@ -15,27 +15,42 @@ public class SubgramClient {
         this.token = token;
     }
 
-    public SubgramTask getTask(User user, List<String> excludeChannelIds) {
+    public SubgramTask getTask(User user, List<String> excludeChannels) {
         try {
-            String url = "https://api.subgram.ru/request-op/";
+            String urlStr = "https://api.subgram.ru/request-op/";
+            URL url = new URL(urlStr);
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con.setRequestMethod("POST");
+            con.setRequestProperty("Content-Type", "application/json");
+            con.setRequestProperty("Auth", token);
+            con.setDoOutput(true);
 
             JSONObject body = new JSONObject();
-            body.put("UserId", user.getTelegramId());
-            body.put("ChatId", user.getTelegramId());
+            body.put("UserId", String.valueOf(user.getTelegramId()));
+            body.put("ChatId", String.valueOf(user.getTelegramId()));
             body.put("Gender", user.getSex());
             body.put("action", "subscribe");
-            body.put("exclude_channel_ids", excludeChannelIds != null ? excludeChannelIds : new JSONArray());
+            body.put("exclude_channel_ids", new JSONArray(excludeChannels));
 
-            body.put("token", token);
+            try (OutputStream os = con.getOutputStream()) {
+                os.write(body.toString().getBytes());
+            }
 
-            JSONObject response = sendPost(url, body);
+            BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+            StringBuilder response = new StringBuilder();
+            String line;
+            while ((line = in.readLine()) != null) {
+                response.append(line);
+            }
+            in.close();
 
-            if (response.optBoolean("success", false) && response.has("link")) {
+            JSONObject json = new JSONObject(response.toString());
+            if (json.optBoolean("success", false) && json.has("link")) {
                 return new SubgramTask(
                         user.getTelegramId(),
-                        response.getString("link"),
-                        response.getInt("reward"),
-                        response.getString("op_id")
+                        json.getString("link"),
+                        json.getInt("reward"),
+                        json.getString("op_id")
                 );
             }
 
