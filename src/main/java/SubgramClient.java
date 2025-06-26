@@ -8,7 +8,6 @@ import java.util.List;
 
 public class SubgramClient {
 
-    private static final String API_URL = "https://subgram.ru/api/bot/";
     private final String token;
 
     public SubgramClient(String token) {
@@ -22,7 +21,7 @@ public class SubgramClient {
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("POST");
             con.setRequestProperty("Content-Type", "application/json");
-            con.setRequestProperty("Auth", token);
+            con.setRequestProperty("Auth", token);  // ✅ Правильный способ передачи токена
             con.setDoOutput(true);
 
             JSONObject body = new JSONObject();
@@ -31,6 +30,10 @@ public class SubgramClient {
             body.put("Gender", user.getSex());
             body.put("action", "subscribe");
             body.put("exclude_channel_ids", new JSONArray(excludeChannels));
+            // ⚠️ Не передаем language_code, Premium, first_name, если тебе не нужны
+
+            // 🔍 LOG запроса
+            System.out.println("📤 Subgram request body: " + body.toString());
 
             try (OutputStream os = con.getOutputStream()) {
                 os.write(body.toString().getBytes());
@@ -44,6 +47,9 @@ public class SubgramClient {
             }
             in.close();
 
+            // 🔍 LOG ответа
+            System.out.println("📥 Subgram response: " + response);
+
             JSONObject json = new JSONObject(response.toString());
             if (json.optBoolean("success", false) && json.has("link")) {
                 return new SubgramTask(
@@ -55,6 +61,7 @@ public class SubgramClient {
             }
 
         } catch (Exception e) {
+            System.out.println("❌ Ошибка при запросе задания из Subgram:");
             e.printStackTrace();
         }
 
@@ -63,8 +70,12 @@ public class SubgramClient {
 
     public boolean checkSubscription(long telegramId, String opId) {
         try {
-            String url = API_URL + "check-subscription?telegram_id=" + telegramId + "&op_id=" + opId + "&token=" + token;
-            JSONObject response = sendGet(url);
+            String urlStr = "https://api.subgram.ru/check-subscription";
+            JSONObject body = new JSONObject();
+            body.put("telegram_id", telegramId);
+            body.put("op_id", opId);
+
+            JSONObject response = sendPost(urlStr, body);
             return response.optBoolean("subscribed", false);
         } catch (Exception e) {
             e.printStackTrace();
@@ -74,12 +85,12 @@ public class SubgramClient {
 
     public boolean confirmSubscription(long telegramId, String opId) {
         try {
-            String url = API_URL + "confirm-subscription";
+            String urlStr = "https://api.subgram.ru/confirm-subscription";
             JSONObject body = new JSONObject();
             body.put("telegram_id", telegramId);
             body.put("op_id", opId);
-            body.put("token", token);
-            JSONObject response = sendPost(url, body);
+
+            JSONObject response = sendPost(urlStr, body);
             return response.optBoolean("success", false);
         } catch (Exception e) {
             e.printStackTrace();
@@ -106,10 +117,12 @@ public class SubgramClient {
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         con.setRequestMethod("POST");
         con.setRequestProperty("Content-Type", "application/json");
+        con.setRequestProperty("Auth", token);
         con.setDoOutput(true);
         try (OutputStream os = con.getOutputStream()) {
             os.write(body.toString().getBytes());
         }
+
         BufferedReader in = new BufferedReader(
                 new InputStreamReader(con.getInputStream())
         );

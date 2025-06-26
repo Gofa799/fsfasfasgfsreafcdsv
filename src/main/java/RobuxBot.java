@@ -338,7 +338,7 @@ public class RobuxBot extends TelegramLongPollingBot {
         db.saveSubgramTask(task);
 
         String text = "📌 Подпишись на канал:\n" + task.getLink() +
-                "\n\n💰 Награда: " + task.getReward() + " робукс" +
+                "\n\n💰 Награда: " + task.getReward() + " робуkс" +
                 "\n\nПосле подписки нажми кнопку ниже:";
 
         MessageUtils.sendText(this, chatId,

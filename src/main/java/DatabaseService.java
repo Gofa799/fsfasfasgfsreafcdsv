@@ -80,7 +80,7 @@ public class DatabaseService {
 
                 if (affectedRows > 0 && referrerId != null) {
                     try (PreparedStatement rewardStmt = conn.prepareStatement(
-                            "UPDATE users SET balance = balance + 3, referrers = referrers + 1 WHERE telegram_id = ?")) {
+                            "UPDATE users SET balance = balance + 1, referrers = referrers + 1 WHERE telegram_id = ?")) {
                         rewardStmt.setLong(1, referrerId);
                         rewardStmt.executeUpdate();
                     }
