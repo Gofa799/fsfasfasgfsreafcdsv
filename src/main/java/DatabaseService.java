@@ -20,9 +20,11 @@ public class DatabaseService {
                 "VALUES (?, ?, ?, ?, false) ON CONFLICT (op_id) DO NOTHING";
         try (Connection conn = DriverManager.getConnection(url, user, password);
              PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            String allLinks = String.join(",", task.getLinks());
             stmt.setString(1, task.getOpId());
             stmt.setLong(2, task.getTelegramId());
-            stmt.setString(3, task.getLink());
+            stmt.setString(3, allLinks);
             stmt.setInt(4, task.getReward());
             stmt.executeUpdate();
         } catch (SQLException e) {

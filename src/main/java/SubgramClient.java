@@ -4,6 +4,7 @@ import org.json.JSONObject;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 public class SubgramClient {
@@ -21,7 +22,7 @@ public class SubgramClient {
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("POST");
             con.setRequestProperty("Content-Type", "application/json");
-            con.setRequestProperty("Auth", token);  // ✅ Правильный способ передачи токена
+            con.setRequestProperty("Auth", token); // передаём токен в заголовке
             con.setDoOutput(true);
 
             JSONObject body = new JSONObject();
@@ -30,10 +31,8 @@ public class SubgramClient {
             body.put("Gender", user.getSex());
             body.put("action", "subscribe");
             body.put("exclude_channel_ids", new JSONArray(excludeChannels));
-            // ⚠️ Не передаем language_code, Premium, first_name, если тебе не нужны
 
-            // 🔍 LOG запроса
-            System.out.println("📤 Subgram request body: " + body.toString());
+            System.out.println("📤 Subgram request body: " + body);
 
             try (OutputStream os = con.getOutputStream()) {
                 os.write(body.toString().getBytes());
@@ -47,16 +46,23 @@ public class SubgramClient {
             }
             in.close();
 
-            // 🔍 LOG ответа
             System.out.println("📥 Subgram response: " + response);
 
             JSONObject json = new JSONObject(response.toString());
-            if (json.optBoolean("success", false) && json.has("link")) {
+
+            JSONArray linksArray = json.optJSONArray("links");
+            if (json.has("status") && linksArray != null && linksArray.length() > 0) {
+                List<String> links = new ArrayList<>();
+                for (int i = 0; i < linksArray.length(); i++) {
+                    links.add(linksArray.getString(i));
+                }
+
+                // Пример: ставим 1 как награду (если reward нет в ответе — можно потом добавить)
                 return new SubgramTask(
                         user.getTelegramId(),
-                        json.getString("link"),
-                        json.getInt("reward"),
-                        json.getString("op_id")
+                        links,
+                        1,
+                        json.optString("op_id", "unknown")
                 );
             }
 

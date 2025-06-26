@@ -1,18 +1,31 @@
+import java.util.List;
+
 public class SubgramTask {
     private final long telegramId;
-    private final String opId;
-    private final String link;
+    private final List<String> links;
     private final int reward;
+    private final String opId;
 
-    public SubgramTask(long telegramId, String link, int reward, String opId) {
+    public SubgramTask(long telegramId, List<String> links, int reward, String opId) {
         this.telegramId = telegramId;
-        this.link = link;
+        this.links = links;
         this.reward = reward;
         this.opId = opId;
     }
 
-    public long getTelegramId() { return telegramId; }
-    public String getOpId() { return opId; }
-    public String getLink() { return link; }
-    public int getReward() { return reward; }
+    public List<String> getLinks() {
+        return links;
+    }
+
+    public int getReward() {
+        return reward;
+    }
+
+    public String getOpId() {
+        return opId;
+    }
+
+    public long getTelegramId() {
+        return telegramId;
+    }
 }

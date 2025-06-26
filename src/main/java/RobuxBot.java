@@ -6,6 +6,7 @@ import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.chatmember.ChatMember;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 
 import java.util.*;
@@ -219,6 +220,10 @@ public class RobuxBot extends TelegramLongPollingBot {
 
                 MessageUtils.sendText(this, chatId, text, keyboard, null, lastBotMessages);
             }
+            if (data.startsWith("confirm_sub_")) {
+                String opId = data.replace("confirm_sub_", "");
+                return;
+            }
             else if (data.equals("sex_male") || data.equals("sex_female")) {
                 String sex = data.equals("sex_male") ? "male" : "female";
                 db.setUserSex(telegramId, sex);
@@ -314,7 +319,6 @@ public class RobuxBot extends TelegramLongPollingBot {
     private void handleSubgramTask(long chatId, long userId) {
         User user = db.getUser(userId);
 
-
         if (user.getSex() == null || user.getSex().isEmpty()) {
             MessageUtils.sendText(this, chatId,
                     "👤 Укажи свой пол, чтобы получить задания:",
@@ -323,9 +327,10 @@ public class RobuxBot extends TelegramLongPollingBot {
                     lastBotMessages);
             return;
         }
-        List<String> excludeChannels = new ArrayList<>();
 
+        List<String> excludeChannels = new ArrayList<>();
         SubgramTask task = subgramClient.getTask(user, excludeChannels);
+
         if (task == null) {
             MessageUtils.sendText(this, chatId,
                     "🔄 Сейчас нет заданий. Попробуй позже.",
@@ -337,15 +342,39 @@ public class RobuxBot extends TelegramLongPollingBot {
 
         db.saveSubgramTask(task);
 
-        String text = "📌 Подпишись на канал:\n" + task.getLink() +
-                "\n\n💰 Награда: " + task.getReward() + " робуkс" +
-                "\n\nПосле подписки нажми кнопку ниже:";
+        StringBuilder text = new StringBuilder("📌 Подпишись на следующие каналы(❗Не отписываться до получения робуксов❗):\n");
 
-        MessageUtils.sendText(this, chatId,
-                text,
-                KeyboardFactory.confirmSubButton(task.getOpId()),
-                null,
-                lastBotMessages);
+        int index = 1;
+        for (String link : task.getLinks()) {
+            text.append(index++).append(". ").append(link).append("\n");
+        }
+
+        text.append("\n💰 Награда: ").append(task.getReward()).append(" робукс")
+                .append("\n\nПосле подписки нажми кнопку ниже ✅ Я подписался");
+
+
+        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
+
+        for (String link : task.getLinks()) {
+            rows.add(List.of(
+                    InlineKeyboardButton.builder()
+                            .text("ПОДПИСАТЬСЯ")
+                            .url(link)
+                            .build()
+            ));
+        }
+
+
+        rows.add(List.of(
+                InlineKeyboardButton.builder()
+                        .text("✅ Я подписался")
+                        .callbackData("confirm_sub_" + task.getOpId())
+                        .build()
+        ));
+
+        InlineKeyboardMarkup markup = new InlineKeyboardMarkup(rows);
+
+        MessageUtils.sendText(this, chatId, text.toString(), markup, null, lastBotMessages);
     }
 
     private void editWithdrawalPage(long chatId, int messageId, List<WithdrawalRequest> requests, int page) {
