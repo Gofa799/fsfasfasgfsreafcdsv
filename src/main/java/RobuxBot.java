@@ -331,7 +331,7 @@ public class RobuxBot extends TelegramLongPollingBot {
         List<String> excludeChannels = new ArrayList<>();
         SubgramTask task = subgramClient.getTask(user, excludeChannels);
 
-        if (task == null) {
+        if (task == null || task.getLinks() == null || task.getLinks().isEmpty()) {
             MessageUtils.sendText(this, chatId,
                     "🔄 Сейчас нет заданий. Попробуй позже.",
                     KeyboardFactory.mainKeyboard(),
@@ -342,28 +342,22 @@ public class RobuxBot extends TelegramLongPollingBot {
 
         db.saveSubgramTask(task);
 
-        StringBuilder text = new StringBuilder("📌 Подпишись на следующие каналы(❗Не отписываться до получения робуксов❗):\n");
-
-        int index = 1;
-        for (String link : task.getLinks()) {
-            text.append(index++).append(". ").append(link).append("\n");
-        }
-
-        text.append("\n💰 Награда: ").append(task.getReward()).append(" робукс")
-                .append("\n\nПосле подписки нажми кнопку ниже ✅ Я подписался");
-
+        int taskCount = task.getLinks().size();
+        StringBuilder text = new StringBuilder("📌 Подпишись на каналы ниже (❗Не отписывайся до получения робуксов❗):\n\n")
+                .append("💰 Награда: ").append(taskCount).append(" робукс(а)\n\n")
+                .append("После подписки нажми кнопку ниже:");
 
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
 
+        int index = 1;
         for (String link : task.getLinks()) {
             rows.add(List.of(
                     InlineKeyboardButton.builder()
-                            .text("ПОДПИСАТЬСЯ")
+                            .text("ПОДПИСАТЬСЯ " + index++)
                             .url(link)
                             .build()
             ));
         }
-
 
         rows.add(List.of(
                 InlineKeyboardButton.builder()
@@ -373,7 +367,6 @@ public class RobuxBot extends TelegramLongPollingBot {
         ));
 
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup(rows);
-
         MessageUtils.sendText(this, chatId, text.toString(), markup, null, lastBotMessages);
     }
 

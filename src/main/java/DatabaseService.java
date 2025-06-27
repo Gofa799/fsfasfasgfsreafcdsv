@@ -17,7 +17,7 @@ public class DatabaseService {
     }
     public void saveSubgramTask(SubgramTask task) {
         String sql = "INSERT INTO subgram_tasks (op_id, telegram_id, channel_link, reward, completed) " +
-                "VALUES (?, ?, ?, ?, false) ON CONFLICT (op_id) DO NOTHING";
+                "VALUES (?, ?, ?, 1, false) ON CONFLICT (op_id) DO NOTHING";
         try (Connection conn = DriverManager.getConnection(url, user, password);
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
@@ -26,6 +26,17 @@ public class DatabaseService {
             stmt.setLong(2, task.getTelegramId());
             stmt.setString(3, allLinks);
             stmt.setInt(4, task.getReward());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    public void increaseUserBalance(long telegramId, int amount) {
+        String sql = "UPDATE users SET balance = balance + ? WHERE telegram_id = ?";
+        try (Connection conn = DriverManager.getConnection(url, user, password);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, amount);
+            stmt.setLong(2, telegramId);
             stmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
