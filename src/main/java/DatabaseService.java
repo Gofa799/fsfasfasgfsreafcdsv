@@ -23,12 +23,22 @@ public class DatabaseService {
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             String allLinks = String.join(",", task.getLinks());
+
+
+            System.out.println("🔄 Сохраняем задание:");
+            System.out.println("opId: " + task.getOpId());
+            System.out.println("telegramId: " + task.getTelegramId());
+            System.out.println("links: " + allLinks);
+            System.out.println("SQL: " + sql);
+
+
             stmt.setString(1, task.getOpId());
             stmt.setLong(2, task.getTelegramId());
             stmt.setString(3, allLinks);
-            stmt.setInt(4, task.getReward());
-            stmt.executeUpdate();
+            int rows = stmt.executeUpdate();
+            System.out.println("✅ Сохранено строк: " + rows);
         } catch (SQLException e) {
+            System.out.println("❌ Ошибка при сохранении задания:");
             e.printStackTrace();
         }
     }
