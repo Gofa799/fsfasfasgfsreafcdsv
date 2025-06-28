@@ -87,8 +87,8 @@ public class RobuxBot extends TelegramLongPollingBot {
                         awaitingAmount.remove(telegramId);
                         return;
                     }
-                    if (referrers < 5) {
-                        MessageUtils.sendText(this, chatId, "❌ Недостаточно друзей, должно быть 5 и больше!", KeyboardFactory.mainKeyboard(), null, lastBotMessages);
+                    if (referrers < 3) {
+                        MessageUtils.sendText(this, chatId, "❌ Недостаточно друзей, должно быть 3 и больше!", KeyboardFactory.mainKeyboard(), null, lastBotMessages);
                         awaitingAmount.remove(telegramId);
                         return;
                     }
@@ -204,6 +204,37 @@ public class RobuxBot extends TelegramLongPollingBot {
             int messageId = callback.getMessage().getMessageId();
             long telegramId = callback.getFrom().getId();
 
+            if (data.startsWith("retry_sub_")) {
+                String opId = data.replace("retry_sub_", "");
+                SubgramTask task = db.getSubgramTaskByOpId(opId);
+                if (task == null) {
+                    MessageUtils.sendText(this, chatId, "❌ Не удалось найти задание.", null, null, lastBotMessages);
+                    return;
+                }
+
+                boolean subscribed = subgramClient.checkSubscription(chatId, opId);
+
+                if (subscribed) {
+                    db.markSubgramTaskCompleted(chatId, opId);
+                    db.addBalance(chatId, 1);
+                    MessageUtils.sendText(this, chatId,
+                            "🎉Тебе начислена 1 монетка.",
+                            KeyboardFactory.nextTaskButton(),
+                            null,
+                            lastBotMessages);
+                } else {
+                    MessageUtils.sendText(this, chatId,
+                            "❗️Похоже, ты не подписался. Подпишись и нажми \"Проверить\".",
+                            KeyboardFactory.retryConfirmButton(opId),
+                            null,
+                            lastBotMessages);
+                }
+            }
+
+            if (data.equals("get_next_task")) {
+                handleSubgramTask(chatId, chatId);
+            }
+
             if (data.startsWith("tasks_prev_")) {
                 int currentPage = Integer.parseInt(data.substring("tasks_prev_".length()));
                 editTaskPage(chatId, messageId, db.getAvailableTasks(telegramId), currentPage - 1);
@@ -222,13 +253,40 @@ public class RobuxBot extends TelegramLongPollingBot {
             }
             if (data.startsWith("confirm_sub_")) {
                 String opId = data.replace("confirm_sub_", "");
-                return;
+                long userId = callback.getFrom().getId();
+
+                SubgramTask task = db.getSubgramTaskByOpId(opId);
+                if (task == null) {
+                    MessageUtils.sendText(this, chatId,
+                            "❌ Не удалось найти задание.",
+                            KeyboardFactory.mainKeyboard(),
+                            null,
+                            lastBotMessages);
+                    return;
+                }
+
+                boolean subscribed = subgramClient.checkSubscription(userId, opId);
+
+                if (subscribed) {
+                    MessageUtils.sendText(this, chatId,
+                                "🎉 Отлично! Тебе начислена 1 монетка",
+                                KeyboardFactory.nextTaskButton(),
+                                null,
+                                lastBotMessages);
+
+                } else {
+                    MessageUtils.sendText(this, chatId,
+                            "❗ Похоже, ты ещё не подписался. Подпишись и нажми кнопку ниже:",
+                            KeyboardFactory.retryConfirmButton(opId),
+                            null,
+                            lastBotMessages);
+                }
             }
             else if (data.equals("sex_male") || data.equals("sex_female")) {
                 String sex = data.equals("sex_male") ? "male" : "female";
                 db.setUserSex(telegramId, sex);
                 MessageUtils.sendText(this, chatId, "✅ Пол сохранён! Можно перейти к заданиям", KeyboardFactory.mainKeyboard(), null,lastBotMessages);
-                handleSubgramTask(chatId, telegramId); // ← снова вызвать
+                handleSubgramTask(chatId, telegramId);
             }
             else if (data.startsWith("check_task_")) {
             long taskId = Long.parseLong(data.substring("check_task_".length()));
@@ -342,22 +400,25 @@ public class RobuxBot extends TelegramLongPollingBot {
 
         db.saveSubgramTask(task);
 
-        int taskCount = task.getLinks().size();
-        StringBuilder text = new StringBuilder("📌 Подпишись на каналы ниже (❗Не отписывайся до получения робуксов❗):\n\n")
-                .append("💰 Награда: ").append(taskCount).append(" робукс(а)\n\n")
-                .append("После подписки нажми кнопку ниже:");
+        String link = task.getLinks().get(0);
+
+        String text = """
+            📌 Подпишись на канал (❗Не отписывайся до получения робукса❗):
+
+            💰 Награда: 1 монетка (1 рб)
+
+            После подписки нажми кнопку ниже:
+            """;
 
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
 
-        int index = 1;
-        for (String link : task.getLinks()) {
-            rows.add(List.of(
-                    InlineKeyboardButton.builder()
-                            .text("ПОДПИСАТЬСЯ " + index++)
-                            .url(link)
-                            .build()
-            ));
-        }
+        rows.add(List.of(
+                InlineKeyboardButton.builder()
+                        .text("ПОДПИСАТЬСЯ")
+                        .url(link)
+                        .build()
+        ));
+
 
         rows.add(List.of(
                 InlineKeyboardButton.builder()
@@ -367,7 +428,7 @@ public class RobuxBot extends TelegramLongPollingBot {
         ));
 
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup(rows);
-        MessageUtils.sendText(this, chatId, text.toString(), markup, null, lastBotMessages);
+        MessageUtils.sendText(this, chatId, text, markup, null, lastBotMessages);
     }
 
     private void editWithdrawalPage(long chatId, int messageId, List<WithdrawalRequest> requests, int page) {
@@ -415,7 +476,7 @@ public class RobuxBot extends TelegramLongPollingBot {
                 }
 
                 checked++;
-                Thread.sleep(50); // не спамим
+                Thread.sleep(50);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -431,7 +492,7 @@ public class RobuxBot extends TelegramLongPollingBot {
         for (Long userId : allUsers) {
             try {
                 MessageUtils.sendText(this, userId, message, KeyboardFactory.adminKeyboard(), null, lastBotMessages);
-                Thread.sleep(30); // анти-спам пауза
+                Thread.sleep(30);
             } catch (Exception e) {
                 System.err.println("Не удалось отправить сообщение пользователю " + userId);
             }

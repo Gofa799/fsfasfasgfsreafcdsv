@@ -58,6 +58,23 @@ public class KeyboardFactory {
                 List.of(InlineKeyboardButton.builder().text("✅ Я подписался").callbackData("confirm_sub_" + opId).build())
         ));
     }
+    public static InlineKeyboardMarkup retryConfirmButton(String opId) {
+        return new InlineKeyboardMarkup(List.of(
+                List.of(InlineKeyboardButton.builder()
+                        .text("✅ Проверить")
+                        .callbackData("retry_sub_" + opId)
+                        .build())
+        ));
+    }
+
+    public static InlineKeyboardMarkup nextTaskButton() {
+        return new InlineKeyboardMarkup(List.of(
+                List.of(InlineKeyboardButton.builder()
+                        .text("➡️ Другое задание")
+                        .callbackData("get_next_task")
+                        .build())
+        ));
+    }
     public static InlineKeyboardMarkup taskKeyboard(List<Task> tasks, int page, int pageSize) {
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
 

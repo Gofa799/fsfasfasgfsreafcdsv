@@ -2,6 +2,7 @@
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class DatabaseService {
@@ -171,6 +172,30 @@ public class DatabaseService {
             e.printStackTrace();
         }
     }
+    public void markSubgramTaskCompleted(long userId, String opId) {
+        String sql = "UPDATE subgram_tasks SET completed = true, completed_at = now() WHERE op_id = ? AND telegram_id = ?";
+        try (Connection conn = DriverManager.getConnection(url, user, password);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, opId);
+            stmt.setLong(2, userId);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    public void addBalance(long telegramId, int amount) {
+        String sql = "UPDATE users SET balance = balance + ? WHERE telegram_id = ?";
+        try (Connection conn = DriverManager.getConnection(url, user, password);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, amount);
+            stmt.setLong(2, telegramId);
+            stmt.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
     public boolean submitTask(long telegramId, long taskId) {
         try (Connection conn = DriverManager.getConnection(url, user, password)) {
             conn.setAutoCommit(false);
@@ -222,6 +247,25 @@ public class DatabaseService {
             e.printStackTrace();
         }
         return false;
+    }
+    public SubgramTask getSubgramTaskByOpId(String opId) {
+        String sql = "SELECT telegram_id, channel_link, reward, op_id FROM subgram_tasks WHERE op_id = ?";
+        try (Connection conn = DriverManager.getConnection(url, user, password);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, opId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                long telegramId = rs.getLong("telegram_id");
+                String link = rs.getString("channel_link");
+                int reward = rs.getInt("reward");
+
+                List<String> links = Arrays.asList(link.split(","));
+                return new SubgramTask(telegramId, links, reward, opId);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public List<Task> getAvailableTasks(long userId) {
