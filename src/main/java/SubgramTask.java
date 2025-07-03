@@ -1,31 +1,29 @@
-import java.util.List;
-
 public class SubgramTask {
     private final long telegramId;
-    private final List<String> links;
-    private final int reward;
-    private final String opId;
+    private final String link;
+    private final String status;
+    private final String type;
 
-    public SubgramTask(long telegramId, List<String> links, int reward, String opId) {
+    public SubgramTask(long telegramId, String link, String status, String type) {
         this.telegramId = telegramId;
-        this.links = links;
-        this.reward = reward;
-        this.opId = opId;
-    }
-
-    public List<String> getLinks() {
-        return links;
-    }
-
-    public int getReward() {
-        return reward;
-    }
-
-    public String getOpId() {
-        return opId;
+        this.link = link;
+        this.status = status;
+        this.type = type;
     }
 
     public long getTelegramId() {
         return telegramId;
+    }
+
+    public String getLink() {
+        return link;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public String getType() {
+        return type;
     }
 }

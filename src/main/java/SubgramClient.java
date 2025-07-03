@@ -4,7 +4,6 @@ import org.json.JSONObject;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 
 public class SubgramClient {
@@ -22,7 +21,7 @@ public class SubgramClient {
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("POST");
             con.setRequestProperty("Content-Type", "application/json");
-            con.setRequestProperty("Auth", token); // передаём токен в заголовке
+            con.setRequestProperty("Auth", token);
             con.setDoOutput(true);
 
             JSONObject body = new JSONObject();
@@ -50,20 +49,23 @@ public class SubgramClient {
 
             JSONObject json = new JSONObject(response.toString());
 
-            JSONArray linksArray = json.optJSONArray("links");
-            if (json.has("status") && linksArray != null && linksArray.length() > 0) {
-                List<String> links = new ArrayList<>();
-                for (int i = 0; i < linksArray.length(); i++) {
-                    links.add(linksArray.getString(i));
-                }
+            if (json.has("status") && json.get("status").toString().equals("success")) {
+                JSONObject additional = json.optJSONObject("additional");
+                if (additional != null && additional.has("sponsors")) {
+                    JSONArray sponsors = additional.getJSONArray("sponsors");
 
-                // Пример: ставим 1 как награду (если reward нет в ответе — можно потом добавить)
-                return new SubgramTask(
-                        user.getTelegramId(),
-                        links,
-                        1,
-                        json.optString("op_id", "unknown")
-                );
+                    for (int i = 0; i < sponsors.length(); i++) {
+                        JSONObject sponsor = sponsors.getJSONObject(i);
+
+                        String link = sponsor.optString("link", null);
+                        String status = sponsor.optString("status", "unknown");
+                        String type = sponsor.optString("type", "unknown");
+
+                        if (link != null && !link.isEmpty()) {
+                            return new SubgramTask(user.getTelegramId(), link, status, type);
+                        }
+                    }
+                }
             }
 
         } catch (Exception e) {
@@ -74,48 +76,36 @@ public class SubgramClient {
         return null;
     }
 
-    public boolean checkSubscription(long telegramId, String opId) {
+
+    public boolean checkSubscription(long telegramId, String channelLink) {
         try {
             String urlStr = "https://api.subgram.ru/check-subscription";
+
             JSONObject body = new JSONObject();
             body.put("telegram_id", telegramId);
-            body.put("op_id", opId);
+            body.put("links", new JSONArray().put(channelLink));
 
             JSONObject response = sendPost(urlStr, body);
-            return response.optBoolean("subscribed", false);
+
+            if (response.has("additional")) {
+                JSONArray sponsors = response.getJSONObject("additional").optJSONArray("sponsors");
+                if (sponsors != null) {
+                    for (int i = 0; i < sponsors.length(); i++) {
+                        JSONObject sponsor = sponsors.getJSONObject(i);
+                        String link = sponsor.getString("link");
+                        if (link.equals(channelLink)) {
+                            return sponsor.getString("status").equals("subscribed");
+                        }
+                    }
+                }
+            }
+
         } catch (Exception e) {
+            System.out.println("❌ Ошибка при проверке подписки:");
             e.printStackTrace();
-            return false;
         }
-    }
 
-    public boolean confirmSubscription(long telegramId, String opId) {
-        try {
-            String urlStr = "https://api.subgram.ru/confirm-subscription";
-            JSONObject body = new JSONObject();
-            body.put("telegram_id", telegramId);
-            body.put("op_id", opId);
-
-            JSONObject response = sendPost(urlStr, body);
-            return response.optBoolean("success", false);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    private JSONObject sendGet(String urlStr) throws Exception {
-        URL url = new URL(urlStr);
-        HttpURLConnection con = (HttpURLConnection) url.openConnection();
-        con.setRequestMethod("GET");
-        BufferedReader in = new BufferedReader(
-                new InputStreamReader(con.getInputStream())
-        );
-        StringBuilder response = new StringBuilder();
-        String line;
-        while ((line = in.readLine()) != null) response.append(line);
-        in.close();
-        return new JSONObject(response.toString());
+        return false;
     }
 
     private JSONObject sendPost(String urlStr, JSONObject body) throws Exception {
@@ -125,17 +115,17 @@ public class SubgramClient {
         con.setRequestProperty("Content-Type", "application/json");
         con.setRequestProperty("Auth", token);
         con.setDoOutput(true);
+
         try (OutputStream os = con.getOutputStream()) {
             os.write(body.toString().getBytes());
         }
 
-        BufferedReader in = new BufferedReader(
-                new InputStreamReader(con.getInputStream())
-        );
+        BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
         StringBuilder response = new StringBuilder();
         String line;
         while ((line = in.readLine()) != null) response.append(line);
         in.close();
+
         return new JSONObject(response.toString());
     }
 }
