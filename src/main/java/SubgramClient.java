@@ -33,6 +33,7 @@ public class SubgramClient {
             body.put("Gender", user.getSex());
             body.put("action", "subscribe");
             body.put("exclude_channel_ids", new JSONArray(excludeChannels));
+            System.out.println("📦 Тело запроса: " + body.toString());
 
             try (OutputStream os = con.getOutputStream()) {
                 os.write(body.toString().getBytes());
@@ -44,6 +45,7 @@ public class SubgramClient {
             while ((line = in.readLine()) != null) {
                 response.append(line);
             }
+            System.out.println("📥 Ответ от Subgram: " + response);
 
             JSONObject json = new JSONObject(response.toString());
 
@@ -51,23 +53,33 @@ public class SubgramClient {
                 JSONObject additional = json.optJSONObject("additional");
                 if (additional != null && additional.has("sponsors")) {
                     JSONArray sponsors = additional.getJSONArray("sponsors");
+                    System.out.println("👀 Найдено спонсоров: " + sponsors.length());
 
                     for (int i = 0; i < sponsors.length(); i++) {
                         JSONObject sponsor = sponsors.getJSONObject(i);
                         String link = sponsor.optString("link");
                         String status = sponsor.optString("status", "unknown");
 
+                        System.out.println("➡️ Спонсор #" + (i + 1) + ": link=" + link + ", status=" + status);
+
                         if (link != null && status.equals("unsubscribed")) {
                             result.add(new SubgramTask(user.getTelegramId(), link));
+                            System.out.println("✅ Добавлено задание: " + link);
                         }
                     }
+                } else {
+                    System.out.println("⚠️ Нет поля 'sponsors' в ответе.");
                 }
+            } else {
+                System.out.println("❌ Статус ответа не success или отсутствует.");
             }
 
         } catch (Exception e) {
+            System.out.println("🛑 Ошибка при запросе к Subgram:");
             e.printStackTrace();
         }
 
+        System.out.println("📦 Вернулось заданий: " + result.size());
         return result;
     }
 
