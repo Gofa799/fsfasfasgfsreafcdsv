@@ -223,16 +223,11 @@ public class RobuxBot extends TelegramLongPollingBot {
 
                 MessageUtils.sendText(this, chatId, text, keyboard, null, lastBotMessages);
             }
-            if (data.startsWith("retry_sub_")) {
-                String link = data.replace("retry_sub_", "");
-                SubgramTask task = db.getSubgramTask(chatId, link);
-
-                if (task == null) {
-                    MessageUtils.sendText(this, chatId, "❌ Задание не найдено.", null, null, lastBotMessages);
-                    return;
-                }
+            if (data.startsWith("confirm_sub_")) {
+                String link = data.replace("confirm_sub_", "");
 
                 boolean subscribed = subgramClient.checkSubscription(chatId, link);
+
                 if (subscribed) {
                     db.markSubgramTaskCompleted(chatId, link);
                     db.addBalance(chatId, 1);
@@ -339,52 +334,34 @@ public class RobuxBot extends TelegramLongPollingBot {
         if (user.getSex() == null || user.getSex().isEmpty()) {
             MessageUtils.sendText(this, chatId,
                     "👤 Укажи свой пол, чтобы получить задания:",
-                    KeyboardFactory.genderButtons(),
-                    null,
-                    lastBotMessages);
+                    KeyboardFactory.genderButtons(), null, lastBotMessages);
             return;
         }
 
-        List<String> excludeChannels = new ArrayList<>();
-        SubgramTask task = subgramClient.getTask(user, excludeChannels);
+        List<SubgramTask> tasks = subgramClient.getTask(user, List.of());
 
-        if (task == null || task.getLink() == null || task.getLink().isEmpty()) {
+        if (tasks.isEmpty()) {
             MessageUtils.sendText(this, chatId,
                     "🔄 Сейчас нет заданий. Попробуй позже.",
-                    KeyboardFactory.mainKeyboard(),
-                    null,
-                    lastBotMessages);
+                    KeyboardFactory.mainKeyboard(), null, lastBotMessages);
             return;
         }
 
+        SubgramTask task = tasks.get(0);
         db.saveSubgramTask(task);
 
         String link = task.getLink();
-
         String text = """
-            📌 Подписаться на канал (❗Не отписываться до вывода робуксов):
+        📌 Подпишись на канал (❗Не отписываться до вывода робуксов):
 
-            💰 Награда: 1 монетка (1 рб)
-            """;
+        💰 Награда: 1 монетка (1 рб)
+        """;
 
-        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
-
-        rows.add(List.of(
-                InlineKeyboardButton.builder()
-                        .text("ПОДПИСАТЬСЯ")
-                        .url(link)
-                        .build()
+        InlineKeyboardMarkup markup = new InlineKeyboardMarkup(List.of(
+                List.of(InlineKeyboardButton.builder().text("ПОДПИСАТЬСЯ").url(link).build()),
+                List.of(InlineKeyboardButton.builder().text("✅ Я подписался").callbackData("confirm_sub_" + link).build())
         ));
 
-
-        rows.add(List.of(
-                InlineKeyboardButton.builder()
-                        .text("✅ Я подписался")
-                        .callbackData("confirm_sub_" + task.getLink())
-                        .build()
-        ));
-
-        InlineKeyboardMarkup markup = new InlineKeyboardMarkup(rows);
         MessageUtils.sendText(this, chatId, text, markup, null, lastBotMessages);
     }
 

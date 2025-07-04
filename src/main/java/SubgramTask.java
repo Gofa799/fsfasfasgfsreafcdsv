@@ -1,11 +1,8 @@
-import java.util.List;
-
 public class SubgramTask {
     private final long telegramId;
-    private final List<String> link;
+    private final String link;
 
-
-    public SubgramTask(long telegramId, List<String> link, String status, String type) {
+    public SubgramTask(long telegramId, String link) {
         this.telegramId = telegramId;
         this.link = link;
     }
@@ -14,8 +11,7 @@ public class SubgramTask {
         return telegramId;
     }
 
-    public List<String> getLink() {
+    public String getLink() {
         return link;
     }
-
 }

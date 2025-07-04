@@ -15,10 +15,13 @@ public class SubgramClient {
         this.token = token;
     }
 
-    public SubgramTask getTask(User user, List<String> excludeChannels) {
+    public List<SubgramTask> getTask(User user, List<String> excludeChannels) {
+        List<SubgramTask> result = new ArrayList<>();
+
         try {
-            String urlStr = "https://api.subgram.ru/request-op/";
-            HttpURLConnection con = (HttpURLConnection) new URL(urlStr).openConnection();
+
+            URL url = new URL("https://api.subgram.ru/request-op/");
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("POST");
             con.setRequestProperty("Content-Type", "application/json");
             con.setRequestProperty("Auth", token);
@@ -41,43 +44,31 @@ public class SubgramClient {
             while ((line = in.readLine()) != null) {
                 response.append(line);
             }
-            in.close();
-
-            System.out.println("📥 Subgram response: " + response);
 
             JSONObject json = new JSONObject(response.toString());
 
-            if (json.has("status") && json.getString("status").equals("success")) {
+            if (json.has("status") && json.get("status").toString().equals("success")) {
                 JSONObject additional = json.optJSONObject("additional");
                 if (additional != null && additional.has("sponsors")) {
                     JSONArray sponsors = additional.getJSONArray("sponsors");
 
-                    List<String> links = new ArrayList<>();
-                    String type = "unknown";
-                    String status = "unknown";
-
                     for (int i = 0; i < sponsors.length(); i++) {
                         JSONObject sponsor = sponsors.getJSONObject(i);
                         String link = sponsor.optString("link");
-                        if (link != null && !link.isEmpty()) {
-                            links.add(link);
-                            type = sponsor.optString("type", type);
-                            status = sponsor.optString("status", status);
-                        }
-                    }
+                        String status = sponsor.optString("status", "unknown");
 
-                    if (!links.isEmpty()) {
-                        return new SubgramTask(user.getTelegramId(), links, status, type);
+                        if (link != null && status.equals("unsubscribed")) {
+                            result.add(new SubgramTask(user.getTelegramId(), link));
+                        }
                     }
                 }
             }
 
         } catch (Exception e) {
-            System.out.println("❌ Ошибка при запросе задания из Subgram:");
             e.printStackTrace();
         }
 
-        return null;
+        return result;
     }
 
 

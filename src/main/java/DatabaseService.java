@@ -19,16 +19,15 @@ public class DatabaseService {
 
     }
     public void saveSubgramTask(SubgramTask task) {
-        String sql = "INSERT INTO subgram_tasks (telegram_id, channel_link, completed) " +
-                "VALUES (?, ?, false) ON CONFLICT (telegram_id, channel_link) DO NOTHING";
-        try (Connection conn = DriverManager.getConnection(url, user, password)) {
-            for (String link : task.getLink()) {
-                try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                    stmt.setLong(1, task.getTelegramId());
-                    stmt.setString(2, link);
-                    stmt.executeUpdate();
-                }
-            }
+        String sql = "INSERT INTO subgram_tasks (telegram_id, channel_link, completed, timestamp) " +
+                "VALUES (?, ?, false, NOW()) ON CONFLICT (telegram_id, channel_link) DO NOTHING";
+        try (Connection conn = DriverManager.getConnection(url, user, password);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setLong(1, task.getTelegramId());
+            stmt.setString(2, task.getLink());
+            stmt.executeUpdate();
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
