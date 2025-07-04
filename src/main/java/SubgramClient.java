@@ -49,7 +49,7 @@ public class SubgramClient {
 
             JSONObject json = new JSONObject(response.toString());
 
-            if (json.has("status") && json.get("status").toString().equals("success")) {
+            if (json.has("additional")) {
                 JSONObject additional = json.optJSONObject("additional");
                 if (additional != null && additional.has("sponsors")) {
                     JSONArray sponsors = additional.getJSONArray("sponsors");
@@ -71,7 +71,7 @@ public class SubgramClient {
                     System.out.println("⚠️ Нет поля 'sponsors' в ответе.");
                 }
             } else {
-                System.out.println("❌ Статус ответа не success или отсутствует.");
+                System.out.println("❌ Поле 'additional' отсутствует.");
             }
 
         } catch (Exception e) {
