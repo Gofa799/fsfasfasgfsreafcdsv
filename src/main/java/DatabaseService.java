@@ -1,5 +1,7 @@
 
 
+import javassist.compiler.ast.Pair;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,22 +21,14 @@ public class DatabaseService {
     public void saveSubgramTask(SubgramTask task) {
         String sql = "INSERT INTO subgram_tasks (telegram_id, channel_link, completed) " +
                 "VALUES (?, ?, false) ON CONFLICT (telegram_id, channel_link) DO NOTHING";
-        try (Connection conn = DriverManager.getConnection(url, user, password);
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setLong(1, task.getTelegramId());
-            stmt.setString(2, task.getLink());
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-    public void increaseUserBalance(long telegramId, int amount) {
-        String sql = "UPDATE users SET balance = balance + ? WHERE telegram_id = ?";
-        try (Connection conn = DriverManager.getConnection(url, user, password);
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, amount);
-            stmt.setLong(2, telegramId);
-            stmt.executeUpdate();
+        try (Connection conn = DriverManager.getConnection(url, user, password)) {
+            for (String link : task.getLink()) {
+                try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                    stmt.setLong(1, task.getTelegramId());
+                    stmt.setString(2, link);
+                    stmt.executeUpdate();
+                }
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -168,8 +162,8 @@ public class DatabaseService {
             e.printStackTrace();
         }
     }
-    public SubgramTask getSubgramTask(long telegramId, String link) {
-        String query = "SELECT * FROM subgram_tasks WHERE telegram_id = ? AND link = ?";
+    public String[] getTelegramIdAndLink(long telegramId, String link) {
+        String query = "SELECT telegram_id, channel_link FROM subgram_tasks WHERE telegram_id = ? AND channel_link = ?";
 
         try (Connection conn = DriverManager.getConnection(url, user, password);
              PreparedStatement stmt = conn.prepareStatement(query)) {
@@ -180,17 +174,28 @@ public class DatabaseService {
             ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {
-                String status = rs.getString("status");
-                String type = rs.getString("type");
-
-                return new SubgramTask(
-                        telegramId,
-                        link,
-                        status,
-                        type
-                );
+                return new String[]{
+                        String.valueOf(rs.getLong("telegram_id")),
+                        rs.getString("channel_link")
+                };
             }
 
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+    public String getNextUncompletedSubgramLink(long telegramId) {
+        String sql = "SELECT channel_link FROM subgram_tasks WHERE telegram_id = ? AND completed = false LIMIT 1";
+
+        try (Connection conn = DriverManager.getConnection(url, user, password);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, telegramId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getString("channel_link");
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }

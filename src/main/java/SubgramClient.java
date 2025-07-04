@@ -4,6 +4,7 @@ import org.json.JSONObject;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 public class SubgramClient {
@@ -17,8 +18,7 @@ public class SubgramClient {
     public SubgramTask getTask(User user, List<String> excludeChannels) {
         try {
             String urlStr = "https://api.subgram.ru/request-op/";
-            URL url = new URL(urlStr);
-            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            HttpURLConnection con = (HttpURLConnection) new URL(urlStr).openConnection();
             con.setRequestMethod("POST");
             con.setRequestProperty("Content-Type", "application/json");
             con.setRequestProperty("Auth", token);
@@ -30,8 +30,6 @@ public class SubgramClient {
             body.put("Gender", user.getSex());
             body.put("action", "subscribe");
             body.put("exclude_channel_ids", new JSONArray(excludeChannels));
-
-            System.out.println("📤 Subgram request body: " + body);
 
             try (OutputStream os = con.getOutputStream()) {
                 os.write(body.toString().getBytes());
@@ -49,21 +47,27 @@ public class SubgramClient {
 
             JSONObject json = new JSONObject(response.toString());
 
-            if (json.has("status") && json.get("status").toString().equals("success")) {
+            if (json.has("status") && json.getString("status").equals("success")) {
                 JSONObject additional = json.optJSONObject("additional");
                 if (additional != null && additional.has("sponsors")) {
                     JSONArray sponsors = additional.getJSONArray("sponsors");
 
+                    List<String> links = new ArrayList<>();
+                    String type = "unknown";
+                    String status = "unknown";
+
                     for (int i = 0; i < sponsors.length(); i++) {
                         JSONObject sponsor = sponsors.getJSONObject(i);
-
-                        String link = sponsor.optString("link", null);
-                        String status = sponsor.optString("status", "unknown");
-                        String type = sponsor.optString("type", "unknown");
-
+                        String link = sponsor.optString("link");
                         if (link != null && !link.isEmpty()) {
-                            return new SubgramTask(user.getTelegramId(), link, status, type);
+                            links.add(link);
+                            type = sponsor.optString("type", type);
+                            status = sponsor.optString("status", status);
                         }
+                    }
+
+                    if (!links.isEmpty()) {
+                        return new SubgramTask(user.getTelegramId(), links, status, type);
                     }
                 }
             }
